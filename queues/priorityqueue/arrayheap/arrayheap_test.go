@@ -36,7 +36,7 @@ func TestPop(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 3, val)
 	// Pop empty heap
-	val, err = heap.Pop()
+	_, err = heap.Pop()
 	assert.ErrorIs(t, err, ErrHeapEmpty)
 }
 
