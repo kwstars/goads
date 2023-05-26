@@ -3,6 +3,8 @@ package ArrayList
 import (
 	"errors"
 	"fmt"
+	"github.com/kwstars/goads/containers"
+	"github.com/kwstars/goads/lists"
 )
 
 var (
@@ -10,8 +12,121 @@ var (
 	ErrFormIndexMustBeLessThanToIndex = errors.New("fromIndex must be less than or equal to toIndex")
 )
 
+var _ lists.List[int] = (*ArrayList[int])(nil)
+
 type ArrayList[T any] struct {
 	elements []T
+	cmp      func(a, b T) int8
+}
+
+func (t *ArrayList[T]) Empty() bool {
+	return len(t.elements) == 0
+}
+
+func (t *ArrayList[T]) Full() bool {
+	return false
+}
+
+func (t *ArrayList[T]) Size() int {
+	return len(t.elements)
+}
+
+func (t *ArrayList[T]) Values() []interface{} {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (t *ArrayList[T]) String() string {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (t *ArrayList[T]) Iter() containers.Iterator[T] {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (t *ArrayList[T]) Add(index int, element T) error {
+	if index < 0 || index >= len(t.elements) {
+		return fmt.Errorf("%w", ErrIndexOutOfRange)
+	}
+
+	t.elements = append(t.elements[:index], t.elements[index:]...)
+	t.elements[index] = element
+
+	return nil
+}
+
+func (t *ArrayList[T]) Append(element T) {
+	t.elements = append(t.elements, element)
+}
+
+func (t *ArrayList[T]) AddAll(index int, elements []T) error {
+	if index < 0 || index >= len(t.elements) {
+		return fmt.Errorf("%w", ErrIndexOutOfRange)
+	}
+
+	t.elements = append(t.elements[:index], elements...)
+	t.elements = append(t.elements, t.elements[index:]...)
+
+	return nil
+}
+
+func (t *ArrayList[T]) Equals(other T) bool {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (t *ArrayList[T]) Get(index int) (T, error) {
+	if index < 0 || index >= len(t.elements) {
+		var zero = new(T)
+		return *zero, fmt.Errorf("%w", ErrIndexOutOfRange)
+	}
+
+	return t.elements[index], nil
+}
+
+func (t *ArrayList[T]) IndexOf(element T) int {
+	for k, v := range t.elements {
+		if t.cmp(v, element) == 0 {
+			return k
+		}
+	}
+	return -1
+}
+
+func (t *ArrayList[T]) LastIndexOf(element T) int {
+	for i := len(t.elements) - 1; i >= 0; i-- {
+		if t.cmp(t.elements[i], element) == 0 {
+			return i
+		}
+	}
+	return -1
+}
+
+func (t *ArrayList[T]) Remove(index int) error {
+	if index < 0 || index >= len(t.elements) {
+		return fmt.Errorf("%w", ErrIndexOutOfRange)
+	}
+
+	t.elements = append(t.elements[:index], t.elements[index+1:]...)
+
+	return nil
+}
+
+func (t *ArrayList[T]) Set(index int, value T) error {
+	if index < 0 || index >= len(t.elements) {
+		return fmt.Errorf("%w", ErrIndexOutOfRange)
+	}
+
+	t.elements[index] = value
+
+	return nil
+}
+
+func (t *ArrayList[T]) SubList(fromIndex int, toIndex int) []T {
+	//TODO implement me
+	panic("implement me")
 }
 
 func NewArrayList[T any]() *ArrayList[T] {
@@ -20,64 +135,13 @@ func NewArrayList[T any]() *ArrayList[T] {
 	}
 }
 
-func (list *ArrayList[T]) Add(index int, element T) error {
-	if index < 0 || index >= len(list.elements) {
-		return fmt.Errorf("%w", ErrIndexOutOfRange)
-	}
-
-	list.elements = append(list.elements[:index], list.elements[index:]...)
-	list.elements[index] = element
-
-	return nil
+func (t *ArrayList[T]) Clear() {
+	t.elements = []T{}
 }
 
-func (list *ArrayList[T]) Append(element T) {
-	list.elements = append(list.elements, element)
-}
-
-func (list *ArrayList[T]) AddAll(index int, elements []T) error {
-	if index < 0 || index >= len(list.elements) {
-		return fmt.Errorf("%w", ErrIndexOutOfRange)
-	}
-
-	list.elements = append(list.elements[:index], elements...)
-	list.elements = append(list.elements, list.elements[index:]...)
-
-	return nil
-}
-
-func (list *ArrayList[T]) Clear() {
-	list.elements = []T{}
-}
-
-func (list *ArrayList[T]) Get(index int) (T, bool) {
-	if index < 0 || index >= len(list.elements) {
-		var zero = new(T)
-		return *zero, false
-	}
-
-	return list.elements[index], true
-}
-
-func (list *ArrayList[T]) Remove(index int) {
-	if index < 0 || index >= len(list.elements) {
-		return
-	}
-
-	list.elements = append(list.elements[:index], list.elements[index+1:]...)
-}
-
-func (list *ArrayList[T]) Set(index int, value T) {
-	if index < 0 || index >= len(list.elements) {
-		return
-	}
-
-	list.elements[index] = value
-}
-
-func (list *ArrayList[T]) Contains(values ...T) bool {
+func (t *ArrayList[T]) Contains(values ...T) bool {
 	for _, value := range values {
-		if !list.Contains(value) {
+		if !t.Contains(value) {
 			return false
 		}
 	}
@@ -85,8 +149,8 @@ func (list *ArrayList[T]) Contains(values ...T) bool {
 	return true
 }
 
-func (list *ArrayList[T]) RemoveRange(fromIndex int, toIndex int) error {
-	if fromIndex < 0 || fromIndex >= len(list.elements) || toIndex < 0 || toIndex >= len(list.elements) {
+func (t *ArrayList[T]) RemoveRange(fromIndex int, toIndex int) error {
+	if fromIndex < 0 || fromIndex >= len(t.elements) || toIndex < 0 || toIndex >= len(t.elements) {
 		return fmt.Errorf("%w", ErrIndexOutOfRange)
 	}
 
@@ -94,7 +158,7 @@ func (list *ArrayList[T]) RemoveRange(fromIndex int, toIndex int) error {
 		return fmt.Errorf("%w", ErrFormIndexMustBeLessThanToIndex)
 	}
 
-	list.elements = append(list.elements[:fromIndex], list.elements[toIndex:]...)
+	t.elements = append(t.elements[:fromIndex], t.elements[toIndex:]...)
 
 	return nil
 }
