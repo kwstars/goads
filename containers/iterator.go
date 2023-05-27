@@ -1,7 +1,5 @@
 package containers
 
-import "fmt"
-
 // Iterator is an interface for an iterator over the elements in a container.
 type Iterator[T any] interface {
 	// HasNext determines if there are more elements in the container to iterate over.
@@ -31,8 +29,8 @@ func (it *sliceIterator[T]) Next() T {
 	return v
 }
 
-func printAll[T any](c Container[T]) {
-	for it := c.Iter(); it.HasNext(); {
-		fmt.Println(it.Next())
-	}
-}
+//func printAll[T any](c Container[T]) {
+//	for it := c.Iter(); it.HasNext(); {
+//		fmt.Println(it.Next())
+//	}
+//}
