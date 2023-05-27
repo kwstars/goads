@@ -18,9 +18,6 @@ type List[T any] interface {
 	// Clear removes all elements from the list.
 	Clear()
 
-	// Equals checks if the list is equal to another.
-	Equals(other T) bool
-
 	// Get retrieves an element at a specific position in the list.
 	Get(index int) (T, error)
 
@@ -45,5 +42,5 @@ type List[T any] interface {
 	Set(index int, element T) error
 
 	// SubList returns a subsection of the list, between two indices.
-	SubList(fromIndex int, toIndex int) []T
+	SubList(fromIndex int, toIndex int) ([]T, error)
 }
