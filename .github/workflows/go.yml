@@ -13,16 +13,36 @@ jobs:
   build:
     strategy:
       matrix:
-        go: [1.18,1.19,1.20.x]
+        os: [ ubuntu-latest ]
+        go: [ 1.18,1.19,1.20.x ]
     name: build & test
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v3
-      - name: Set up Go
-        uses: actions/setup-go@v4.0.1
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup go
+        uses: actions/setup-go@v4
         with:
           go-version: ${{ matrix.go }}
-      - name: Build
-        run: go build ./...
+
+      - name: Cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/Library/Caches/go-build
+            %LocalAppData%\go-build
+            ~/go/pkg/mod
+          key: cache-go-${{ runner.os }}-${{ matrix.go-version }}-${{ github.run_number }}
+          restore-keys: |
+            cache-go-${{ runner.os }}-${{ matrix.go-version }}-
+
       - name: Test
-        run: go test ./...
+        run: make test-v
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: .testCoverage.txt
