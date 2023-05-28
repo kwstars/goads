@@ -10,7 +10,9 @@ lint-fix:
 
 .PHONY: test
 test:
-	go test -count=1 -race -covermode=atomic -coverprofile=.testCoverage.txt -timeout=2m ./...
+	go test -v -count=1 -covermode=atomic -coverprofile=.testCoverage.txt -timeout=2m ./...
+	go test -v ./... -race
+
 
 .PHONY: test-v
 test-v:
@@ -20,3 +22,7 @@ test-v:
 cover-view:
 	go tool cover -func .testCoverage.txt
 	go tool cover -html .testCoverage.txt
+
+.PHONY: build
+build:
+	go build ./...
