@@ -51,7 +51,7 @@ func TestArrayList_Full(t *testing.T) {
 	})
 }
 
-func TestArrayList_Add(t *testing.T) {
+func TestArrayList_Insert(t *testing.T) {
 	t.Run("Normal case - Insert an element at the specified index", func(t *testing.T) {
 		// Create an ArrayList with initial elements
 		list := NewArrayList[int](nil)
@@ -59,7 +59,7 @@ func TestArrayList_Add(t *testing.T) {
 		list.Append(20)
 		list.Append(30)
 
-		err := list.Add(1, 15)
+		err := list.Insert(1, 15)
 		assert.NoError(t, err)
 
 		expected := []int{10, 15, 20, 30}
@@ -73,7 +73,7 @@ func TestArrayList_Add(t *testing.T) {
 		list.Append(20)
 		list.Append(30)
 
-		err := list.Add(0, 5)
+		err := list.Insert(0, 5)
 		assert.NoError(t, err)
 
 		expected := []int{5, 10, 20, 30}
@@ -87,7 +87,7 @@ func TestArrayList_Add(t *testing.T) {
 		list.Append(20)
 		list.Append(30)
 
-		err := list.Add(list.Size(), 35)
+		err := list.Insert(list.Size(), 35)
 		assert.NoError(t, err)
 
 		expected := []int{10, 20, 30, 35}
@@ -98,7 +98,7 @@ func TestArrayList_Add(t *testing.T) {
 		// Create an empty ArrayList
 		list := NewArrayList[int](nil)
 
-		err := list.Add(1, 10)
+		err := list.Insert(1, 10)
 		assert.Error(t, err)
 		assert.EqualError(t, err, ErrIndexOutOfRange.Error())
 	})
@@ -138,7 +138,7 @@ func TestArrayList_Get(t *testing.T) {
 }
 
 func TestArrayList_Append(t *testing.T) {
-	t.Run("Normal case - Add an element to the end of the list", func(t *testing.T) {
+	t.Run("Normal case - Insert an element to the end of the list", func(t *testing.T) {
 		// Create an empty ArrayList
 		list := NewArrayList[int](nil)
 
@@ -151,7 +151,7 @@ func TestArrayList_Append(t *testing.T) {
 		assert.Equal(t, expected, list.elements)
 	})
 
-	t.Run("Edge case - Add an element to the end of an existing list", func(t *testing.T) {
+	t.Run("Edge case - Insert an element to the end of an existing list", func(t *testing.T) {
 		// Create an ArrayList with existing elements
 		list := NewArrayList[int](nil)
 		list.Append(10)
@@ -162,82 +162,82 @@ func TestArrayList_Append(t *testing.T) {
 	})
 }
 func TestArrayList_AppendFront(t *testing.T) {
-	t.Run("Normal case - Add an element to the front of the list", func(t *testing.T) {
+	t.Run("Normal case - Insert an element to the front of the list", func(t *testing.T) {
 		// Create an empty ArrayList
 		list := NewArrayList[int](nil)
 
-		list.AppendFront(10)
+		list.Prepend(10)
 		expected := []int{10}
 		assert.Equal(t, expected, list.elements)
 	})
 
-	t.Run("Add more elements to the front", func(t *testing.T) {
+	t.Run("Insert more elements to the front", func(t *testing.T) {
 		// Create an ArrayList with initial elements
 		list := NewArrayList[int](nil)
 		list.Append(20)
 		list.Append(30)
 
-		list.AppendFront(10)
+		list.Prepend(10)
 		expected := []int{10, 20, 30}
 		assert.Equal(t, expected, list.elements)
 
-		list.AppendFront(5)
+		list.Prepend(5)
 		expected = []int{5, 10, 20, 30}
 		assert.Equal(t, expected, list.elements)
 	})
 
-	t.Run("Edge case - Add an element to the front of an existing list", func(t *testing.T) {
+	t.Run("Edge case - Insert an element to the front of an existing list", func(t *testing.T) {
 		// Create an ArrayList with existing elements
 		list := NewArrayList[int](nil)
 		list.Append(20)
 		list.Append(30)
 
-		list.AppendFront(10)
+		list.Prepend(10)
 		expected := []int{10, 20, 30}
 		assert.Equal(t, expected, list.elements)
 	})
 }
 
-func TestArrayList_AddAll(t *testing.T) {
+func TestArrayList_InsertAll(t *testing.T) {
 	// Create an ArrayList with initial elements
 	list := NewArrayList[int](nil)
 	list.Append(10)
 	list.Append(20)
 	list.Append(30)
 
-	t.Run("Normal case - Add multiple elements at the specified index", func(t *testing.T) {
+	t.Run("Normal case - Insert multiple elements at the specified index", func(t *testing.T) {
 		elements := []int{40, 50}
-		err := list.AddAll(1, elements)
+		err := list.InsertAll(1, elements)
 		if err != nil {
-			t.Errorf("Error adding elements: %v", err)
+			t.Errorf("Error Inserting elements: %v", err)
 		}
 		expected := []int{10, 40, 50, 20, 30}
 		assert.Equal(t, list.elements, expected)
 	})
 
-	t.Run("Edge case - Add multiple elements at the beginning of the list", func(t *testing.T) {
+	t.Run("Edge case - Insert multiple elements at the beginning of the list", func(t *testing.T) {
 		elements := []int{5, 6, 7}
-		err := list.AddAll(0, elements)
+		err := list.InsertAll(0, elements)
 		if err != nil {
-			t.Errorf("Error adding elements: %v", err)
+			t.Errorf("Error Inserting elements: %v", err)
 		}
 		expected := []int{5, 6, 7, 10, 40, 50, 20, 30}
 		assert.Equal(t, list.elements, expected)
 	})
 
-	t.Run("Edge case - Add multiple elements at the end of the list", func(t *testing.T) {
+	t.Run("Edge case - Insert multiple elements at the end of the list", func(t *testing.T) {
 		elements := []int{60, 70, 80}
-		err := list.AddAll(list.Size(), elements)
+		err := list.InsertAll(list.Size(), elements)
 		if err != nil {
-			t.Errorf("Error adding elements: %v", err)
+			t.Errorf("Error Inserting elements: %v", err)
 		}
 		expected := []int{5, 6, 7, 10, 40, 50, 20, 30, 60, 70, 80}
 		assert.Equal(t, list.elements, expected)
 	})
 
-	t.Run("Error case - Add multiple elements at an invalid index", func(t *testing.T) {
+	t.Run("Error case - Insert multiple elements at an invalid index", func(t *testing.T) {
 		elements := []int{90, 100}
-		err := list.AddAll(100, elements)
+		err := list.InsertAll(100, elements)
 		if err == nil {
 			t.Errorf("Expected error, but got nil")
 		}
@@ -263,7 +263,7 @@ func TestArrayList_IndexOf(t *testing.T) {
 	list.Append(30)
 	list.Append(40)
 	list.Append(50)
-	list.Append(30) // Add a duplicate element
+	list.Append(30) // Insert a duplicate element
 
 	// Normal case: Find an existing element and return its index
 	index := list.IndexOf(20)
@@ -862,7 +862,7 @@ func TestArrayList_Sort(t *testing.T) {
 		return 0
 	})
 
-	// Add unsorted elements to the list
+	// Insert unsorted elements to the list
 	list.Append(5)
 	list.Append(2)
 	list.Append(8)
@@ -885,7 +885,7 @@ func TestArrayList_Sort(t *testing.T) {
 func TestArrayList_Copy(t *testing.T) {
 	list := NewArrayList[int](nil)
 
-	// Add elements to the list
+	// Insert elements to the list
 	list.Append(1)
 	list.Append(2)
 	list.Append(3)
