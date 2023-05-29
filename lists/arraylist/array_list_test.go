@@ -1,30 +1,31 @@
 package arraylist
 
 import (
-	"github.com/stretchr/testify/assert"
 	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
-func TestNewArrayList(t *testing.T) {
+func TestNew(t *testing.T) {
 	// Test with default capacity
-	list := NewArrayList[int](nil)
+	list := New[int](nil)
 	if list.Size() != 0 {
-		t.Error("NewArrayList with default capacity should have size 0")
+		t.Error("New with default capacity should have size 0")
 	}
 
 	// Test with custom capacity
 	capacity := 10
-	list = NewArrayList[int](nil, WithInitialCapacity[int](capacity))
+	list = New[int](nil, WithInitialCapacity[int](capacity))
 	if cap(list.elements) != capacity {
-		t.Errorf("NewArrayList with custom capacity should have capacity %d", capacity)
+		t.Errorf("New with custom capacity should have capacity %d", capacity)
 	}
 }
 
 func TestArrayList_Empty(t *testing.T) {
 	t.Run("Empty list - Returns true", func(t *testing.T) {
 		// Create an empty ArrayList
-		list := NewArrayList[int](nil)
+		list := New[int](nil)
 
 		isEmpty := list.Empty()
 		assert.True(t, isEmpty)
@@ -32,7 +33,7 @@ func TestArrayList_Empty(t *testing.T) {
 
 	t.Run("Non-empty list - Returns false", func(t *testing.T) {
 		// Create an ArrayList with elements
-		list := NewArrayList[int](nil)
+		list := New[int](nil)
 		list.Append(10)
 		list.Append(20)
 
@@ -44,22 +45,22 @@ func TestArrayList_Empty(t *testing.T) {
 func TestArrayList_Full(t *testing.T) {
 	t.Run("Returns false", func(t *testing.T) {
 		// Create an ArrayList
-		list := NewArrayList[int](nil)
+		list := New[int](nil)
 
 		isFull := list.Full()
 		assert.False(t, isFull)
 	})
 }
 
-func TestArrayList_Add(t *testing.T) {
+func TestArrayList_Insert(t *testing.T) {
 	t.Run("Normal case - Insert an element at the specified index", func(t *testing.T) {
 		// Create an ArrayList with initial elements
-		list := NewArrayList[int](nil)
+		list := New[int](nil)
 		list.Append(10)
 		list.Append(20)
 		list.Append(30)
 
-		err := list.Add(1, 15)
+		err := list.Insert(1, 15)
 		assert.NoError(t, err)
 
 		expected := []int{10, 15, 20, 30}
@@ -68,12 +69,12 @@ func TestArrayList_Add(t *testing.T) {
 
 	t.Run("Edge case - Insert an element at the beginning of the list", func(t *testing.T) {
 		// Create an ArrayList with initial elements
-		list := NewArrayList[int](nil)
+		list := New[int](nil)
 		list.Append(10)
 		list.Append(20)
 		list.Append(30)
 
-		err := list.Add(0, 5)
+		err := list.Insert(0, 5)
 		assert.NoError(t, err)
 
 		expected := []int{5, 10, 20, 30}
@@ -82,12 +83,12 @@ func TestArrayList_Add(t *testing.T) {
 
 	t.Run("Edge case - Insert an element at the end of the list", func(t *testing.T) {
 		// Create an ArrayList with initial elements
-		list := NewArrayList[int](nil)
+		list := New[int](nil)
 		list.Append(10)
 		list.Append(20)
 		list.Append(30)
 
-		err := list.Add(list.Size(), 35)
+		err := list.Insert(list.Size(), 35)
 		assert.NoError(t, err)
 
 		expected := []int{10, 20, 30, 35}
@@ -96,17 +97,16 @@ func TestArrayList_Add(t *testing.T) {
 
 	t.Run("Error case - Insert an element at an invalid index", func(t *testing.T) {
 		// Create an empty ArrayList
-		list := NewArrayList[int](nil)
+		list := New[int](nil)
 
-		err := list.Add(1, 10)
-		assert.Error(t, err)
-		assert.EqualError(t, err, ErrIndexOutOfRange.Error())
+		err := list.Insert(1, 10)
+		assert.ErrorIs(t, err, ErrIndexOutOfRange)
 	})
 }
 
 func TestArrayList_Get(t *testing.T) {
 	// Create an ArrayList with initial elements
-	list := NewArrayList[int](nil)
+	list := New[int](nil)
 	list.Append(10)
 	list.Append(20)
 	list.Append(30)
@@ -133,14 +133,14 @@ func TestArrayList_Get(t *testing.T) {
 		// Attempt to retrieve an element at an index outside the valid range
 		_, err := list.Get(3)
 		assert.Error(t, err)
-		assert.EqualError(t, err, ErrIndexOutOfRange.Error())
+		assert.ErrorIs(t, err, ErrIndexOutOfRange)
 	})
 }
 
 func TestArrayList_Append(t *testing.T) {
-	t.Run("Normal case - Add an element to the end of the list", func(t *testing.T) {
+	t.Run("Normal case - Insert an element to the end of the list", func(t *testing.T) {
 		// Create an empty ArrayList
-		list := NewArrayList[int](nil)
+		list := New[int](nil)
 
 		list.Append(10)
 		expected := []int{10}
@@ -151,9 +151,9 @@ func TestArrayList_Append(t *testing.T) {
 		assert.Equal(t, expected, list.elements)
 	})
 
-	t.Run("Edge case - Add an element to the end of an existing list", func(t *testing.T) {
+	t.Run("Edge case - Insert an element to the end of an existing list", func(t *testing.T) {
 		// Create an ArrayList with existing elements
-		list := NewArrayList[int](nil)
+		list := New[int](nil)
 		list.Append(10)
 		list.Append(20)
 		list.Append(30)
@@ -162,82 +162,82 @@ func TestArrayList_Append(t *testing.T) {
 	})
 }
 func TestArrayList_AppendFront(t *testing.T) {
-	t.Run("Normal case - Add an element to the front of the list", func(t *testing.T) {
+	t.Run("Normal case - Insert an element to the front of the list", func(t *testing.T) {
 		// Create an empty ArrayList
-		list := NewArrayList[int](nil)
+		list := New[int](nil)
 
-		list.AppendFront(10)
+		list.Prepend(10)
 		expected := []int{10}
 		assert.Equal(t, expected, list.elements)
 	})
 
-	t.Run("Add more elements to the front", func(t *testing.T) {
+	t.Run("Insert more elements to the front", func(t *testing.T) {
 		// Create an ArrayList with initial elements
-		list := NewArrayList[int](nil)
+		list := New[int](nil)
 		list.Append(20)
 		list.Append(30)
 
-		list.AppendFront(10)
+		list.Prepend(10)
 		expected := []int{10, 20, 30}
 		assert.Equal(t, expected, list.elements)
 
-		list.AppendFront(5)
+		list.Prepend(5)
 		expected = []int{5, 10, 20, 30}
 		assert.Equal(t, expected, list.elements)
 	})
 
-	t.Run("Edge case - Add an element to the front of an existing list", func(t *testing.T) {
+	t.Run("Edge case - Insert an element to the front of an existing list", func(t *testing.T) {
 		// Create an ArrayList with existing elements
-		list := NewArrayList[int](nil)
+		list := New[int](nil)
 		list.Append(20)
 		list.Append(30)
 
-		list.AppendFront(10)
+		list.Prepend(10)
 		expected := []int{10, 20, 30}
 		assert.Equal(t, expected, list.elements)
 	})
 }
 
-func TestArrayList_AddAll(t *testing.T) {
+func TestArrayList_InsertAll(t *testing.T) {
 	// Create an ArrayList with initial elements
-	list := NewArrayList[int](nil)
+	list := New[int](nil)
 	list.Append(10)
 	list.Append(20)
 	list.Append(30)
 
-	t.Run("Normal case - Add multiple elements at the specified index", func(t *testing.T) {
+	t.Run("Normal case - Insert multiple elements at the specified index", func(t *testing.T) {
 		elements := []int{40, 50}
-		err := list.AddAll(1, elements)
+		err := list.InsertAll(1, elements)
 		if err != nil {
-			t.Errorf("Error adding elements: %v", err)
+			t.Errorf("Error Inserting elements: %v", err)
 		}
 		expected := []int{10, 40, 50, 20, 30}
 		assert.Equal(t, list.elements, expected)
 	})
 
-	t.Run("Edge case - Add multiple elements at the beginning of the list", func(t *testing.T) {
+	t.Run("Edge case - Insert multiple elements at the beginning of the list", func(t *testing.T) {
 		elements := []int{5, 6, 7}
-		err := list.AddAll(0, elements)
+		err := list.InsertAll(0, elements)
 		if err != nil {
-			t.Errorf("Error adding elements: %v", err)
+			t.Errorf("Error Inserting elements: %v", err)
 		}
 		expected := []int{5, 6, 7, 10, 40, 50, 20, 30}
 		assert.Equal(t, list.elements, expected)
 	})
 
-	t.Run("Edge case - Add multiple elements at the end of the list", func(t *testing.T) {
+	t.Run("Edge case - Insert multiple elements at the end of the list", func(t *testing.T) {
 		elements := []int{60, 70, 80}
-		err := list.AddAll(list.Size(), elements)
+		err := list.InsertAll(list.Size(), elements)
 		if err != nil {
-			t.Errorf("Error adding elements: %v", err)
+			t.Errorf("Error Inserting elements: %v", err)
 		}
 		expected := []int{5, 6, 7, 10, 40, 50, 20, 30, 60, 70, 80}
 		assert.Equal(t, list.elements, expected)
 	})
 
-	t.Run("Error case - Add multiple elements at an invalid index", func(t *testing.T) {
+	t.Run("Error case - Insert multiple elements at an invalid index", func(t *testing.T) {
 		elements := []int{90, 100}
-		err := list.AddAll(100, elements)
+		err := list.InsertAll(100, elements)
 		if err == nil {
 			t.Errorf("Expected error, but got nil")
 		}
@@ -257,13 +257,13 @@ func TestArrayList_IndexOf(t *testing.T) {
 	}
 
 	// Create an ArrayList with multiple elements
-	list := NewArrayList[int](cmp)
+	list := New[int](cmp)
 	list.Append(10)
 	list.Append(20)
 	list.Append(30)
 	list.Append(40)
 	list.Append(50)
-	list.Append(30) // Add a duplicate element
+	list.Append(30) // Insert a duplicate element
 
 	// Normal case: Find an existing element and return its index
 	index := list.IndexOf(20)
@@ -295,7 +295,7 @@ func TestArrayList_LastIndexOf(t *testing.T) {
 		}
 		return 0
 	}
-	arrayList := NewArrayList(cmp)
+	arrayList := New(cmp)
 
 	t.Run("TestLastIndexOf/element_present", func(t *testing.T) {
 		arrayList.elements = []int{1, 2, 3, 4, 5, 3}
@@ -341,7 +341,7 @@ func TestArrayList_Remove(t *testing.T) {
 		}
 		return 0
 	}
-	arrayList := NewArrayList(cmp)
+	arrayList := New(cmp)
 
 	t.Run("TestRemove/valid_index", func(t *testing.T) {
 		arrayList.elements = []int{1, 2, 3, 4, 5}
@@ -360,17 +360,13 @@ func TestArrayList_Remove(t *testing.T) {
 	t.Run("TestRemove/index_out_of_range", func(t *testing.T) {
 		arrayList.elements = []int{1, 2, 3, 4, 5}
 		err := arrayList.Remove(7)
-		if err == nil || err.Error() != ErrIndexOutOfRange.Error() {
-			t.Errorf("Remove() error = %v, want %v", err, ErrIndexOutOfRange)
-		}
+		assert.ErrorIs(t, err, ErrIndexOutOfRange)
 	})
 
 	t.Run("TestRemove/negative_index", func(t *testing.T) {
 		arrayList.elements = []int{1, 2, 3, 4, 5}
 		err := arrayList.Remove(-1)
-		if err == nil || err.Error() != ErrIndexOutOfRange.Error() {
-			t.Errorf("Remove() error = %v, want %v", err, ErrIndexOutOfRange)
-		}
+		assert.ErrorIs(t, err, ErrIndexOutOfRange)
 	})
 }
 
@@ -385,7 +381,7 @@ func TestArrayList_RemoveUnorderedAtIndex(t *testing.T) {
 		}
 		return 0
 	}
-	arrayList := NewArrayList(cmp)
+	arrayList := New(cmp)
 
 	t.Run("TestRemoveUnorderedAtIndex/valid_index", func(t *testing.T) {
 		arrayList.elements = []int{1, 2, 3, 4, 5}
@@ -404,17 +400,13 @@ func TestArrayList_RemoveUnorderedAtIndex(t *testing.T) {
 	t.Run("TestRemoveUnorderedAtIndex/index_out_of_range", func(t *testing.T) {
 		arrayList.elements = []int{1, 2, 3, 4, 5}
 		err := arrayList.RemoveUnorderedAtIndex(7)
-		if err == nil || err.Error() != ErrIndexOutOfRange.Error() {
-			t.Errorf("RemoveUnorderedAtIndex() error = %v, want %v", err, ErrIndexOutOfRange)
-		}
+		assert.ErrorIs(t, err, ErrIndexOutOfRange)
 	})
 
 	t.Run("TestRemoveUnorderedAtIndex/negative_index", func(t *testing.T) {
 		arrayList.elements = []int{1, 2, 3, 4, 5}
 		err := arrayList.RemoveUnorderedAtIndex(-1)
-		if err == nil || err.Error() != ErrIndexOutOfRange.Error() {
-			t.Errorf("RemoveUnorderedAtIndex() error = %v, want %v", err, ErrIndexOutOfRange)
-		}
+		assert.ErrorIs(t, err, ErrIndexOutOfRange)
 	})
 }
 
@@ -429,7 +421,7 @@ func TestArrayList_PopAtIndex(t *testing.T) {
 		}
 		return 0
 	}
-	arrayList := NewArrayList(cmp)
+	arrayList := New(cmp)
 
 	t.Run("TestPopAtIndex/valid_index", func(t *testing.T) {
 		arrayList.elements = []int{1, 2, 3, 4, 5}
@@ -448,17 +440,13 @@ func TestArrayList_PopAtIndex(t *testing.T) {
 	t.Run("TestPopAtIndex/index_out_of_range", func(t *testing.T) {
 		arrayList.elements = []int{1, 2, 3, 4, 5}
 		_, err := arrayList.PopAtIndex(7)
-		if err == nil || err.Error() != ErrIndexOutOfRange.Error() {
-			t.Errorf("PopAtIndex() error = %v, want %v", err, ErrIndexOutOfRange)
-		}
+		assert.ErrorIs(t, err, ErrIndexOutOfRange)
 	})
 
 	t.Run("TestPopAtIndex/negative_index", func(t *testing.T) {
 		arrayList.elements = []int{1, 2, 3, 4, 5}
 		_, err := arrayList.PopAtIndex(-1)
-		if err == nil || err.Error() != ErrIndexOutOfRange.Error() {
-			t.Errorf("PopAtIndex() error = %v, want %v", err, ErrIndexOutOfRange)
-		}
+		assert.ErrorIs(t, err, ErrIndexOutOfRange)
 	})
 }
 
@@ -473,7 +461,7 @@ func TestArrayList_Pop(t *testing.T) {
 		}
 		return 0
 	}
-	arrayList := NewArrayList(cmp)
+	arrayList := New(cmp)
 
 	t.Run("TestPop/valid_pop", func(t *testing.T) {
 		arrayList.elements = []int{1, 2, 3, 4, 5}
@@ -492,8 +480,8 @@ func TestArrayList_Pop(t *testing.T) {
 	t.Run("TestPop/empty_list", func(t *testing.T) {
 		arrayList.elements = []int{}
 		_, err := arrayList.Pop()
-		if err == nil || err.Error() != ErrPopFromEmptyList.Error() {
-			t.Errorf("Pop() error = %v, want %v", err, ErrPopFromEmptyList)
+		if err == nil || err.Error() != ErrEmptyList.Error() {
+			t.Errorf("Pop() error = %v, want %v", err, ErrEmptyList)
 		}
 	})
 }
@@ -509,7 +497,7 @@ func TestArrayList_PopFront(t *testing.T) {
 		}
 		return 0
 	}
-	arrayList := NewArrayList(cmp)
+	arrayList := New(cmp)
 
 	t.Run("TestPopFront/valid_pop", func(t *testing.T) {
 		arrayList.elements = []int{1, 2, 3, 4, 5}
@@ -528,8 +516,8 @@ func TestArrayList_PopFront(t *testing.T) {
 	t.Run("TestPopFront/empty_list", func(t *testing.T) {
 		arrayList.elements = []int{}
 		_, err := arrayList.PopFront()
-		if err == nil || err.Error() != ErrPopFromEmptyList.Error() {
-			t.Errorf("PopFront() error = %v, want %v", err, ErrPopFromEmptyList)
+		if err == nil || err.Error() != ErrEmptyList.Error() {
+			t.Errorf("PopFront() error = %v, want %v", err, ErrEmptyList)
 		}
 	})
 }
@@ -545,7 +533,7 @@ func TestArrayList_Set(t *testing.T) {
 		}
 		return 0
 	}
-	arrayList := NewArrayList(cmp)
+	arrayList := New(cmp)
 
 	t.Run("TestSet/valid_index", func(t *testing.T) {
 		arrayList.elements = []int{1, 2, 3, 4, 5}
@@ -560,16 +548,12 @@ func TestArrayList_Set(t *testing.T) {
 
 	t.Run("TestSet/invalid_index_negative", func(t *testing.T) {
 		err := arrayList.Set(-1, 6)
-		if err == nil || err.Error() != ErrIndexOutOfRange.Error() {
-			t.Errorf("Set() error = %v, want %v", err, ErrIndexOutOfRange)
-		}
+		assert.ErrorIs(t, err, ErrIndexOutOfRange)
 	})
 
 	t.Run("TestSet/invalid_index_out_of_bounds", func(t *testing.T) {
 		err := arrayList.Set(len(arrayList.elements), 6)
-		if err == nil || err.Error() != ErrIndexOutOfRange.Error() {
-			t.Errorf("Set() error = %v, want %v", err, ErrIndexOutOfRange)
-		}
+		assert.ErrorIs(t, err, ErrIndexOutOfRange)
 	})
 }
 
@@ -584,7 +568,7 @@ func TestArrayList_Clear(t *testing.T) {
 		}
 		return 0
 	}
-	arrayList := NewArrayList(cmp)
+	arrayList := New(cmp)
 
 	t.Run("TestClear/empty_list", func(t *testing.T) {
 		arrayList.Clear()
@@ -613,7 +597,7 @@ func TestArrayList_Contains(t *testing.T) {
 		}
 		return 0
 	}
-	arrayList := NewArrayList(cmp)
+	arrayList := New(cmp)
 	arrayList.elements = []int{1, 2, 3, 4, 5}
 
 	t.Run("TestContains/single_element_present", func(t *testing.T) {
@@ -663,7 +647,7 @@ func TestArrayList_RemoveRange(t *testing.T) {
 		}
 		return 0
 	}
-	arrayList := NewArrayList(cmp)
+	arrayList := New(cmp)
 	arrayList.elements = []int{1, 2, 3, 4, 5}
 
 	t.Run("TestRemoveRange/valid_range", func(t *testing.T) {
@@ -709,7 +693,7 @@ func TestArrayList_SubList(t *testing.T) {
 		}
 		return 0
 	}
-	arrayList := NewArrayList(cmp)
+	arrayList := New(cmp)
 	arrayList.elements = []int{1, 2, 3, 4, 5}
 
 	t.Run("TestSubList/valid_range", func(t *testing.T) {
@@ -755,7 +739,7 @@ func TestArrayList_Reverse(t *testing.T) {
 		}
 		return 0
 	}
-	arrayList := NewArrayList(cmp)
+	arrayList := New(cmp)
 
 	t.Run("TestReverse/odd_number_of_elements", func(t *testing.T) {
 		arrayList.elements = []int{1, 2, 3, 4, 5}
@@ -801,7 +785,7 @@ func TestArrayList_RemoveIf(t *testing.T) {
 		}
 		return 0
 	}
-	arrayList := NewArrayList(cmp)
+	arrayList := New(cmp)
 
 	t.Run("TestRemoveIf/all_elements_meet_predicate", func(t *testing.T) {
 		arrayList.elements = []int{1, 2, 3, 4, 5}
@@ -853,7 +837,7 @@ func TestArrayList_RemoveIf(t *testing.T) {
 }
 
 func TestArrayList_Sort(t *testing.T) {
-	list := NewArrayList[int](func(a, b int) int8 {
+	list := New[int](func(a, b int) int8 {
 		if a < b {
 			return -1
 		} else if a > b {
@@ -862,7 +846,7 @@ func TestArrayList_Sort(t *testing.T) {
 		return 0
 	})
 
-	// Add unsorted elements to the list
+	// Insert unsorted elements to the list
 	list.Append(5)
 	list.Append(2)
 	list.Append(8)
@@ -883,9 +867,9 @@ func TestArrayList_Sort(t *testing.T) {
 }
 
 func TestArrayList_Copy(t *testing.T) {
-	list := NewArrayList[int](nil)
+	list := New[int](nil)
 
-	// Add elements to the list
+	// Insert elements to the list
 	list.Append(1)
 	list.Append(2)
 	list.Append(3)
@@ -926,7 +910,7 @@ func TestArrayList_BatchSplit(t *testing.T) {
 		}
 		return 0
 	}
-	arrayList := NewArrayList(cmp)
+	arrayList := New(cmp)
 
 	t.Run("TestBatchSplit/batchSize_is_negative", func(t *testing.T) {
 		arrayList.elements = []int{1, 2, 3, 4, 5}
@@ -988,7 +972,7 @@ func TestArrayList_SlidingWindows(t *testing.T) {
 		}
 		return 0
 	}
-	arrayList := NewArrayList(cmp)
+	arrayList := New(cmp)
 
 	t.Run("TestSlidingWindows/size_is_negative", func(t *testing.T) {
 		arrayList.elements = []int{1, 2, 3, 4, 5}
@@ -1083,7 +1067,7 @@ func TestArrayList_BringElementToFront(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			// Initialize ArrayList with the test case input
-			list := NewArrayList(cmp, WithInitialCapacity[int](len(tc.input)))
+			list := New(cmp, WithInitialCapacity[int](len(tc.input)))
 			list.elements = append(list.elements, tc.input...)
 
 			list.BringElementToFront(tc.element)
@@ -1136,7 +1120,7 @@ func TestArrayList_RemoveDuplicates(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			// Initialize ArrayList with the test case input
-			list := NewArrayList(cmp, WithInitialCapacity[int](len(tc.input)))
+			list := New(cmp, WithInitialCapacity[int](len(tc.input)))
 			list.elements = append(list.elements, tc.input...)
 
 			list.RemoveDuplicates()
