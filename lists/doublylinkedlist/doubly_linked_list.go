@@ -1,14 +1,12 @@
-package singlylinkedlist
+package doublylinkedlist
 
 import (
-	"errors"
 	"fmt"
-
 	"github.com/kwstars/goads/lists"
 )
 
 var (
-	ErrIndexOutOfRange = errors.New("index out of range")
+	ErrIndexOutOfRange = fmt.Errorf("index out of range")
 )
 
 var _ lists.List[int] = (*List[int])(nil)
@@ -17,21 +15,24 @@ var _ lists.List[int] = (*List[int])(nil)
 type element[T any] struct {
 	value T
 	next  *element[T]
+	prev  *element[T]
 }
 
-// List is a singly linked list.
+// List is a doubly linked list.
 type List[T any] struct {
-	head *element[T]       // head is the first element in the list.
-	tail *element[T]       // tail is the last element in the list.
+	head *element[T]       // head is a sentinel, its next pointer points to the first element in the list.
+	tail *element[T]       // tail is a sentinel, its prev pointer points to the last element in the list.
 	size int               // size is the number of elements in the list.
 	cmp  func(a, b T) int8 // cmp should return a negative number if a < b, zero if a == b, and a positive number if a > b.
 }
 
-// New creates a new singly linked list.
+// New creates a new doubly linked list.
 func New[T any](cmp func(a, b T) int8) *List[T] {
-	zero := new(T)
-	sentinel := &element[T]{value: *zero, next: nil}
-	return &List[T]{head: sentinel, tail: sentinel, size: 0, cmp: cmp}
+	sentinelHead := &element[T]{}
+	sentinelTail := &element[T]{}
+	sentinelHead.next = sentinelTail
+	sentinelTail.prev = sentinelHead
+	return &List[T]{head: sentinelHead, tail: sentinelTail, size: 0, cmp: cmp}
 }
 
 func (l *List[T]) Empty() bool {
@@ -51,19 +52,17 @@ func (l *List[T]) Size() int {
 
 // Append adds an element to the end of the list.
 func (l *List[T]) Append(value T) {
-	newElem := &element[T]{value: value, next: nil}
-	l.tail.next = newElem // Set next pointer of current tail element to point to the new element
-	l.tail = newElem      // Update tail pointer to point to the new tail element
+	newElem := &element[T]{value: value, next: l.tail, prev: l.tail.prev}
+	l.tail.prev.next = newElem
+	l.tail.prev = newElem
 	l.size++
 }
 
 // Prepend adds an element to the start of the list.
 func (l *List[T]) Prepend(value T) {
-	newElem := &element[T]{value: value, next: l.head.next} // Set next pointer of new element to point to the current first element
-	l.head.next = newElem                                   // Set next pointer of head to point to the new first element
-	if l.tail == l.head {                                   // If list is empty, update tail pointer
-		l.tail = newElem
-	}
+	newElem := &element[T]{value: value, next: l.head.next, prev: l.head}
+	l.head.next.prev = newElem
+	l.head.next = newElem
 	l.size++
 }
 
@@ -71,7 +70,7 @@ func (l *List[T]) Prepend(value T) {
 func (l *List[T]) Get(index int) (T, error) {
 	if index < 0 || index >= l.size {
 		zero := new(T)
-		return *zero, fmt.Errorf("%w: %d, size: %d", ErrIndexOutOfRange, index, l.size)
+		return *zero, fmt.Errorf("%w: %d", ErrIndexOutOfRange, index)
 	}
 	cur := l.head
 	for i := 0; i <= index; i++ {
@@ -82,27 +81,19 @@ func (l *List[T]) Get(index int) (T, error) {
 
 // Insert inserts an element at a specific position in the list.
 func (l *List[T]) Insert(index int, value T) error {
-	// Check index bounds
 	if index < 0 || index > l.size {
-		return fmt.Errorf("%w: %d, size: %d", ErrIndexOutOfRange, index, l.size)
+		return fmt.Errorf("%w: %d", ErrIndexOutOfRange, index)
 	}
 
-	// Find the element before the insertion point
 	prev := l.head
 	for i := 0; i < index; i++ {
 		prev = prev.next
 	}
 
-	// Create a new element and insert it
-	newElem := &element[T]{value: value, next: prev.next}
+	newElem := &element[T]{value: value, next: prev.next, prev: prev}
+	prev.next.prev = newElem
 	prev.next = newElem
 
-	// Update tail if new element was inserted at the end of the list
-	if prev == l.tail {
-		l.tail = newElem
-	}
-
-	// Update list size
 	l.size++
 
 	return nil
@@ -110,9 +101,8 @@ func (l *List[T]) Insert(index int, value T) error {
 
 // InsertAll inserts all elements at a specific position in the list.
 func (l *List[T]) InsertAll(index int, values []T) error {
-	// Check index bounds
 	if index < 0 || index > l.size {
-		return fmt.Errorf("%w: %d, size: %d", ErrIndexOutOfRange, index, l.size)
+		return fmt.Errorf("%w: %d", ErrIndexOutOfRange, index)
 	}
 
 	prev := l.head
@@ -120,18 +110,12 @@ func (l *List[T]) InsertAll(index int, values []T) error {
 		prev = prev.next
 	}
 
-	// Insert all elements
 	for _, value := range values {
-		newElem := &element[T]{value: value, next: prev.next}
+		newElem := &element[T]{value: value, next: prev.next, prev: prev}
+		prev.next.prev = newElem
 		prev.next = newElem
 		prev = newElem
 
-		// Update tail if new element was inserted at the end of the list
-		if prev == l.tail {
-			l.tail = newElem
-		}
-
-		// Update list size
 		l.size++
 	}
 
@@ -141,33 +125,25 @@ func (l *List[T]) InsertAll(index int, values []T) error {
 // Clear removes all elements from the list.
 func (l *List[T]) Clear() {
 	// Reset the head and tail to sentinel
-	l.head.next = nil
-	l.tail = l.head
+	l.head.next = l.tail
+	l.tail.prev = l.head
 	l.size = 0
 }
 
 // Remove removes an element at a specific position in the list.
 func (l *List[T]) Remove(index int) error {
-	// Check index bounds
 	if index < 0 || index >= l.size {
-		return fmt.Errorf("%w: %d, size: %d", ErrIndexOutOfRange, index, l.size)
+		return fmt.Errorf("%w: %d", ErrIndexOutOfRange, index)
 	}
 
-	// Find the element before the one to be removed
-	prev := l.head
-	for i := 0; i < index; i++ {
-		prev = prev.next
+	cur := l.head
+	for i := 0; i <= index; i++ {
+		cur = cur.next
 	}
 
-	// Remove the element
-	prev.next = prev.next.next
+	cur.prev.next = cur.next
+	cur.next.prev = cur.prev
 
-	// If we removed the last element, update the tail
-	if prev.next == nil {
-		l.tail = prev
-	}
-
-	// Update list size
 	l.size--
 
 	return nil
@@ -175,32 +151,23 @@ func (l *List[T]) Remove(index int) error {
 
 // RemoveRange removes a range of elements from the list.
 func (l *List[T]) RemoveRange(fromIndex int, toIndex int) error {
-	// Check index bounds
 	if fromIndex < 0 || toIndex >= l.size || fromIndex > toIndex {
-		return fmt.Errorf("%w, fromIndex: %d, toIndex: %d, size: %d", ErrIndexOutOfRange, fromIndex, toIndex, l.size)
+		return fmt.Errorf("%w, fromIndex: %d, toIndex: %d", ErrIndexOutOfRange, fromIndex, toIndex)
 	}
 
-	// Find the element before the start of the range to be removed
-	prev := l.head
-	for i := 0; i < fromIndex; i++ {
-		prev = prev.next
+	start := l.head
+	for i := 0; i <= fromIndex; i++ {
+		start = start.next
 	}
 
-	// Find the element at the end of the range to be removed
-	end := prev
+	end := start
 	for i := fromIndex; i <= toIndex; i++ {
 		end = end.next
 	}
 
-	// Remove the range
-	prev.next = end.next
+	start.prev.next = end.next
+	end.next.prev = start.prev
 
-	// If we removed the last element, update the tail
-	if end == l.tail {
-		l.tail = prev
-	}
-
-	// Update list size
 	l.size -= toIndex - fromIndex + 1
 
 	return nil
@@ -208,18 +175,15 @@ func (l *List[T]) RemoveRange(fromIndex int, toIndex int) error {
 
 // Set sets the value of an element at a specific position in the list.
 func (l *List[T]) Set(index int, value T) error {
-	// Check index bounds
 	if index < 0 || index >= l.size {
-		return fmt.Errorf("%w: %d, size: %d", ErrIndexOutOfRange, index, l.size)
+		return fmt.Errorf("%w: %d", ErrIndexOutOfRange, index)
 	}
 
-	// Find the element at the specified index
 	cur := l.head.next
 	for i := 0; i < index; i++ {
 		cur = cur.next
 	}
 
-	// Set the value of the element
 	cur.value = value
 
 	return nil
@@ -227,7 +191,6 @@ func (l *List[T]) Set(index int, value T) error {
 
 // IndexOf returns the index of the first occurrence of the specified value in the list.
 func (l *List[T]) IndexOf(value T) int {
-	// Traverse the list and find the index of the first occurrence of the value
 	index := 0
 	for cur := l.head.next; cur != nil; cur = cur.next {
 		if l.cmp(cur.value, value) == 0 {
@@ -236,39 +199,35 @@ func (l *List[T]) IndexOf(value T) int {
 		index++
 	}
 
-	// Return -1 if the value is not found
 	return -1
 }
 
 // LastIndexOf returns the index of the last occurrence of the specified value in the list.
 func (l *List[T]) LastIndexOf(value T) int {
-	// Traverse the list and find the index of the last occurrence of the value
-	index := -1
-	for i, cur := 0, l.head.next; cur != nil; i, cur = i+1, cur.next {
+	index := l.size - 1
+	for cur := l.tail.prev; cur != l.head; cur = cur.prev {
 		if l.cmp(cur.value, value) == 0 {
-			index = i
+			return index
 		}
+		index--
 	}
 
-	return index
+	return -1
 }
 
 // SubList returns a view of the portion of this list between the specified fromIndex, inclusive, and toIndex, exclusive.
 func (l *List[T]) SubList(fromIndex int, toIndex int) ([]T, error) {
-	// Check index bounds
-	if fromIndex < 0 || toIndex >= l.size || fromIndex > toIndex {
-		return nil, fmt.Errorf("%w, fromIndex: %d, toIndex: %d, size: %d", ErrIndexOutOfRange, fromIndex, toIndex, l.size)
+	if fromIndex < 0 || toIndex > l.size || fromIndex > toIndex {
+		return nil, fmt.Errorf("%w, fromIndex: %d, toIndex: %d", ErrIndexOutOfRange, fromIndex, toIndex)
 	}
 
-	// Traverse the list until the start of the sublist
 	cur := l.head.next
 	for i := 0; i < fromIndex; i++ {
 		cur = cur.next
 	}
 
-	// Traverse the sublist and collect the values
 	var values []T
-	for i := fromIndex; i <= toIndex; i, cur = i+1, cur.next {
+	for i := fromIndex; i < toIndex; i, cur = i+1, cur.next {
 		values = append(values, cur.value)
 	}
 
