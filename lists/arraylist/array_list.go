@@ -77,7 +77,7 @@ func (l *List[T]) Prepend(element T) {
 // Insert inserts an element at the specified index.
 func (l *List[T]) Insert(index int, element T) error {
 	if index < 0 || index > len(l.elements) {
-		return fmt.Errorf("%w: %d", ErrIndexOutOfRange, index)
+		return fmt.Errorf("%w: %d, size: %d", ErrIndexOutOfRange, index, l.Size())
 	}
 
 	l.elements = append(l.elements[:index], append([]T{element}, l.elements[index:]...)...)
@@ -88,7 +88,7 @@ func (l *List[T]) Insert(index int, element T) error {
 // InsertAll inserts multiple elements at a specific position in the list.
 func (l *List[T]) InsertAll(index int, elements []T) error {
 	if index < 0 || index > len(l.elements) {
-		return fmt.Errorf("%w: %d", ErrIndexOutOfRange, index)
+		return fmt.Errorf("%w: %d, size: %d", ErrIndexOutOfRange, index, l.Size())
 	}
 
 	l.elements = append(l.elements[:index], append(elements, l.elements[index:]...)...)
@@ -227,11 +227,11 @@ func (l *List[T]) Contains(values ...T) bool {
 
 // RemoveRange removes from this list all the elements whose index is between fromIndex, inclusive, and toIndex, exclusive.
 func (l *List[T]) RemoveRange(fromIndex int, toIndex int) error {
-	if fromIndex < 0 || fromIndex >= len(l.elements) || toIndex < 0 || toIndex >= len(l.elements) {
+	if fromIndex < 0 || fromIndex > len(l.elements) || toIndex < 0 || toIndex > len(l.elements) {
 		return fmt.Errorf("%w, fromIndex: %d, toIndex: %d, size: %d", ErrIndexOutOfRange, fromIndex, toIndex, len(l.elements))
 	}
 
-	if fromIndex > toIndex {
+	if fromIndex >= toIndex {
 		return fmt.Errorf("%w, fromIndex: %d, toIndex: %d", ErrFormIndexMustBeLessThanToIndex, fromIndex, toIndex)
 	}
 
@@ -242,11 +242,11 @@ func (l *List[T]) RemoveRange(fromIndex int, toIndex int) error {
 
 // SubList returns a view of the portion of this list between the specified fromIndex, inclusive, and toIndex, exclusive.
 func (l *List[T]) SubList(fromIndex int, toIndex int) ([]T, error) {
-	if fromIndex < 0 || fromIndex >= len(l.elements) || toIndex < 0 || toIndex >= len(l.elements) {
+	if fromIndex < 0 || fromIndex > len(l.elements) || toIndex < 0 || toIndex > len(l.elements) {
 		return nil, fmt.Errorf("%w, fromIndex: %d, toIndex: %d, size: %d", ErrIndexOutOfRange, fromIndex, toIndex, len(l.elements))
 	}
 
-	if fromIndex > toIndex {
+	if fromIndex >= toIndex {
 		return nil, fmt.Errorf("%w", ErrFormIndexMustBeLessThanToIndex)
 	}
 
@@ -305,7 +305,7 @@ func (l *List[T]) Copy() []T {
 
 // BatchSplit splits the list into batches of the specified size.
 func (l *List[T]) BatchSplit(batchSize int) [][]T {
-	if batchSize <= 0 {
+	if batchSize <= 0 || len(l.elements) == 0 {
 		return [][]T{}
 	}
 
@@ -326,7 +326,7 @@ func (l *List[T]) BatchSplit(batchSize int) [][]T {
 
 // SlidingWindows returns a slice of slices of size where each slice.
 func (l *List[T]) SlidingWindows(size int) [][]T {
-	if size <= 0 {
+	if size <= 0 || len(l.elements) == 0 {
 		return [][]T{}
 	}
 	// returns the input slice as the first element

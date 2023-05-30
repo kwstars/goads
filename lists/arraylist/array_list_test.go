@@ -1,28 +1,55 @@
 package arraylist
 
 import (
-	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNew(t *testing.T) {
-	// Test with default capacity
-	list := New[int](nil)
-	if list.Size() != 0 {
-		t.Error("New with default capacity should have size 0")
+func TestList_New(t *testing.T) {
+	tests := []struct {
+		name     string
+		capacity int
+		cmp      func(a, b int) int8
+		wantLen  int
+		wantCap  int
+	}{
+		{
+			name:    "without initial capacity",
+			cmp:     IntsCmp,
+			wantLen: 0,
+			wantCap: 0,
+		},
+		{
+			name:     "with initial capacity of 10",
+			capacity: 10,
+			cmp:      IntsCmp,
+			wantLen:  0,
+			wantCap:  10,
+		},
+		{
+			name:     "with initial capacity of 100",
+			capacity: 100,
+			cmp:      IntsCmp,
+			wantLen:  0,
+			wantCap:  100,
+		},
 	}
 
-	// Test with custom capacity
-	capacity := 10
-	list = New[int](nil, WithInitialCapacity[int](capacity))
-	if cap(list.elements) != capacity {
-		t.Errorf("New with custom capacity should have capacity %d", capacity)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var opts []Option[int]
+			if tt.capacity != 0 {
+				opts = append(opts, WithInitialCapacity[int](tt.capacity))
+			}
+
+			l := New[int](tt.cmp, opts...)
+			assert.Equal(t, tt.wantLen, len(l.elements), "unexpected list length")
+			assert.Equal(t, tt.wantCap, cap(l.elements), "unexpected list capacity")
+		})
 	}
 }
-
-func TestArrayList_Empty(t *testing.T) {
+func TestList_Empty(t *testing.T) {
 	t.Run("Empty list - Returns true", func(t *testing.T) {
 		// Create an empty ArrayList
 		list := New[int](nil)
@@ -52,1029 +79,1389 @@ func TestArrayList_Full(t *testing.T) {
 	})
 }
 
-func TestArrayList_Insert(t *testing.T) {
-	t.Run("Normal case - Insert an element at the specified index", func(t *testing.T) {
-		// Create an ArrayList with initial elements
-		list := New[int](nil)
-		list.Append(10)
-		list.Append(20)
-		list.Append(30)
-
-		err := list.Insert(1, 15)
-		assert.NoError(t, err)
-
-		expected := []int{10, 15, 20, 30}
-		assert.Equal(t, expected, list.elements)
-	})
-
-	t.Run("Edge case - Insert an element at the beginning of the list", func(t *testing.T) {
-		// Create an ArrayList with initial elements
-		list := New[int](nil)
-		list.Append(10)
-		list.Append(20)
-		list.Append(30)
-
-		err := list.Insert(0, 5)
-		assert.NoError(t, err)
-
-		expected := []int{5, 10, 20, 30}
-		assert.Equal(t, expected, list.elements)
-	})
-
-	t.Run("Edge case - Insert an element at the end of the list", func(t *testing.T) {
-		// Create an ArrayList with initial elements
-		list := New[int](nil)
-		list.Append(10)
-		list.Append(20)
-		list.Append(30)
-
-		err := list.Insert(list.Size(), 35)
-		assert.NoError(t, err)
-
-		expected := []int{10, 20, 30, 35}
-		assert.Equal(t, expected, list.elements)
-	})
-
-	t.Run("Error case - Insert an element at an invalid index", func(t *testing.T) {
-		// Create an empty ArrayList
-		list := New[int](nil)
-
-		err := list.Insert(1, 10)
-		assert.ErrorIs(t, err, ErrIndexOutOfRange)
-	})
-}
-
-func TestArrayList_Get(t *testing.T) {
-	// Create an ArrayList with initial elements
-	list := New[int](nil)
-	list.Append(10)
-	list.Append(20)
-	list.Append(30)
-
-	t.Run("Normal case - Retrieve an element at a valid index", func(t *testing.T) {
-		element, err := list.Get(1)
-		assert.NoError(t, err)
-		assert.Equal(t, 20, element)
-	})
-
-	t.Run("Edge case - Retrieve an element at the beginning of the list", func(t *testing.T) {
-		element, err := list.Get(0)
-		assert.NoError(t, err)
-		assert.Equal(t, 10, element)
-	})
-
-	t.Run("Edge case - Retrieve an element at the end of the list", func(t *testing.T) {
-		element, err := list.Get(list.Size() - 1)
-		assert.NoError(t, err)
-		assert.Equal(t, 30, element)
-	})
-
-	t.Run("Error case - Retrieve an element at an invalid index", func(t *testing.T) {
-		// Attempt to retrieve an element at an index outside the valid range
-		_, err := list.Get(3)
-		assert.Error(t, err)
-		assert.ErrorIs(t, err, ErrIndexOutOfRange)
-	})
-}
-
-func TestArrayList_Append(t *testing.T) {
-	t.Run("Normal case - Insert an element to the end of the list", func(t *testing.T) {
-		// Create an empty ArrayList
-		list := New[int](nil)
-
-		list.Append(10)
-		expected := []int{10}
-		assert.Equal(t, expected, list.elements)
-
-		list.Append(20)
-		expected = []int{10, 20}
-		assert.Equal(t, expected, list.elements)
-	})
-
-	t.Run("Edge case - Insert an element to the end of an existing list", func(t *testing.T) {
-		// Create an ArrayList with existing elements
-		list := New[int](nil)
-		list.Append(10)
-		list.Append(20)
-		list.Append(30)
-		expected := []int{10, 20, 30}
-		assert.Equal(t, expected, list.elements)
-	})
-}
-func TestArrayList_AppendFront(t *testing.T) {
-	t.Run("Normal case - Insert an element to the front of the list", func(t *testing.T) {
-		// Create an empty ArrayList
-		list := New[int](nil)
-
-		list.Prepend(10)
-		expected := []int{10}
-		assert.Equal(t, expected, list.elements)
-	})
-
-	t.Run("Insert more elements to the front", func(t *testing.T) {
-		// Create an ArrayList with initial elements
-		list := New[int](nil)
-		list.Append(20)
-		list.Append(30)
-
-		list.Prepend(10)
-		expected := []int{10, 20, 30}
-		assert.Equal(t, expected, list.elements)
-
-		list.Prepend(5)
-		expected = []int{5, 10, 20, 30}
-		assert.Equal(t, expected, list.elements)
-	})
-
-	t.Run("Edge case - Insert an element to the front of an existing list", func(t *testing.T) {
-		// Create an ArrayList with existing elements
-		list := New[int](nil)
-		list.Append(20)
-		list.Append(30)
-
-		list.Prepend(10)
-		expected := []int{10, 20, 30}
-		assert.Equal(t, expected, list.elements)
-	})
-}
-
-func TestArrayList_InsertAll(t *testing.T) {
-	// Create an ArrayList with initial elements
-	list := New[int](nil)
-	list.Append(10)
-	list.Append(20)
-	list.Append(30)
-
-	t.Run("Normal case - Insert multiple elements at the specified index", func(t *testing.T) {
-		elements := []int{40, 50}
-		err := list.InsertAll(1, elements)
-		if err != nil {
-			t.Errorf("Error Inserting elements: %v", err)
-		}
-		expected := []int{10, 40, 50, 20, 30}
-		assert.Equal(t, list.elements, expected)
-	})
-
-	t.Run("Edge case - Insert multiple elements at the beginning of the list", func(t *testing.T) {
-		elements := []int{5, 6, 7}
-		err := list.InsertAll(0, elements)
-		if err != nil {
-			t.Errorf("Error Inserting elements: %v", err)
-		}
-		expected := []int{5, 6, 7, 10, 40, 50, 20, 30}
-		assert.Equal(t, list.elements, expected)
-	})
-
-	t.Run("Edge case - Insert multiple elements at the end of the list", func(t *testing.T) {
-		elements := []int{60, 70, 80}
-		err := list.InsertAll(list.Size(), elements)
-		if err != nil {
-			t.Errorf("Error Inserting elements: %v", err)
-		}
-		expected := []int{5, 6, 7, 10, 40, 50, 20, 30, 60, 70, 80}
-		assert.Equal(t, list.elements, expected)
-	})
-
-	t.Run("Error case - Insert multiple elements at an invalid index", func(t *testing.T) {
-		elements := []int{90, 100}
-		err := list.InsertAll(100, elements)
-		if err == nil {
-			t.Errorf("Expected error, but got nil")
-		}
-	})
-}
-
-func TestArrayList_IndexOf(t *testing.T) {
-	// Create a comparator function for integers
-	cmp := func(a, b int) int8 {
-		if a < b {
-			return -1
-		}
-		if a > b {
-			return 1
-		}
-		return 0
-	}
-
-	// Create an ArrayList with multiple elements
-	list := New[int](cmp)
-	list.Append(10)
-	list.Append(20)
-	list.Append(30)
-	list.Append(40)
-	list.Append(50)
-	list.Append(30) // Insert a duplicate element
-
-	// Normal case: Find an existing element and return its index
-	index := list.IndexOf(20)
-	if index != 1 {
-		t.Errorf("Expected index 1, but got %d", index)
-	}
-
-	// Normal case: Find a duplicate element and return the index of its first occurrence
-	index = list.IndexOf(30)
-	if index != 2 {
-		t.Errorf("Expected index 2, but got %d", index)
-	}
-
-	// Edge case: Find an element that doesn't exist in the list
-	index = list.IndexOf(100)
-	if index != -1 {
-		t.Errorf("Expected index -1, but got %d", index)
-	}
-}
-
-func TestArrayList_LastIndexOf(t *testing.T) {
-	// Create a comparator function for integers
-	cmp := func(a, b int) int8 {
-		if a < b {
-			return -1
-		}
-		if a > b {
-			return 1
-		}
-		return 0
-	}
-	arrayList := New(cmp)
-
-	t.Run("TestLastIndexOf/element_present", func(t *testing.T) {
-		arrayList.elements = []int{1, 2, 3, 4, 5, 3}
-		index := arrayList.LastIndexOf(3)
-		if index != 5 {
-			t.Errorf("LastIndexOf() = %v, want %v", index, 5)
-		}
-	})
-
-	t.Run("TestLastIndexOf/element_absent", func(t *testing.T) {
-		arrayList.elements = []int{1, 2, 3, 4, 5}
-		index := arrayList.LastIndexOf(7)
-		if index != -1 {
-			t.Errorf("LastIndexOf() = %v, want %v", index, -1)
-		}
-	})
-
-	t.Run("TestLastIndexOf/multiple_occurrences", func(t *testing.T) {
-		arrayList.elements = []int{1, 2, 3, 2, 5, 2}
-		index := arrayList.LastIndexOf(2)
-		if index != 5 {
-			t.Errorf("LastIndexOf() = %v, want %v", index, 5)
-		}
-	})
-
-	t.Run("TestLastIndexOf/empty_list", func(t *testing.T) {
-		arrayList.elements = []int{}
-		index := arrayList.LastIndexOf(1)
-		if index != -1 {
-			t.Errorf("LastIndexOf() = %v, want %v", index, -1)
-		}
-	})
-}
-
-func TestArrayList_Remove(t *testing.T) {
-	// Create a comparator function for integers
-	cmp := func(a, b int) int8 {
-		if a < b {
-			return -1
-		}
-		if a > b {
-			return 1
-		}
-		return 0
-	}
-	arrayList := New(cmp)
-
-	t.Run("TestRemove/valid_index", func(t *testing.T) {
-		arrayList.elements = []int{1, 2, 3, 4, 5}
-		err := arrayList.Remove(2)
-		if err != nil {
-			t.Errorf("Remove() error = %v, want nil", err)
-		}
-		if len(arrayList.elements) != 4 {
-			t.Errorf("Remove() remaining elements count = %v, want %v", len(arrayList.elements), 4)
-		}
-		if arrayList.elements[2] != 4 {
-			t.Errorf("Remove() next element = %v, want %v", arrayList.elements[2], 4)
-		}
-	})
-
-	t.Run("TestRemove/index_out_of_range", func(t *testing.T) {
-		arrayList.elements = []int{1, 2, 3, 4, 5}
-		err := arrayList.Remove(7)
-		assert.ErrorIs(t, err, ErrIndexOutOfRange)
-	})
-
-	t.Run("TestRemove/negative_index", func(t *testing.T) {
-		arrayList.elements = []int{1, 2, 3, 4, 5}
-		err := arrayList.Remove(-1)
-		assert.ErrorIs(t, err, ErrIndexOutOfRange)
-	})
-}
-
-func TestArrayList_RemoveUnorderedAtIndex(t *testing.T) {
-	// Create a comparator function for integers
-	cmp := func(a, b int) int8 {
-		if a < b {
-			return -1
-		}
-		if a > b {
-			return 1
-		}
-		return 0
-	}
-	arrayList := New(cmp)
-
-	t.Run("TestRemoveUnorderedAtIndex/valid_index", func(t *testing.T) {
-		arrayList.elements = []int{1, 2, 3, 4, 5}
-		err := arrayList.RemoveUnorderedAtIndex(2)
-		if err != nil {
-			t.Errorf("RemoveUnorderedAtIndex() error = %v, want nil", err)
-		}
-		if len(arrayList.elements) != 4 {
-			t.Errorf("RemoveUnorderedAtIndex() remaining elements count = %v, want %v", len(arrayList.elements), 4)
-		}
-		if arrayList.elements[2] != 5 {
-			t.Errorf("RemoveUnorderedAtIndex() moved element = %v, want %v", arrayList.elements[2], 5)
-		}
-	})
-
-	t.Run("TestRemoveUnorderedAtIndex/index_out_of_range", func(t *testing.T) {
-		arrayList.elements = []int{1, 2, 3, 4, 5}
-		err := arrayList.RemoveUnorderedAtIndex(7)
-		assert.ErrorIs(t, err, ErrIndexOutOfRange)
-	})
-
-	t.Run("TestRemoveUnorderedAtIndex/negative_index", func(t *testing.T) {
-		arrayList.elements = []int{1, 2, 3, 4, 5}
-		err := arrayList.RemoveUnorderedAtIndex(-1)
-		assert.ErrorIs(t, err, ErrIndexOutOfRange)
-	})
-}
-
-func TestArrayList_PopAtIndex(t *testing.T) {
-	// Create a comparator function for integers
-	cmp := func(a, b int) int8 {
-		if a < b {
-			return -1
-		}
-		if a > b {
-			return 1
-		}
-		return 0
-	}
-	arrayList := New(cmp)
-
-	t.Run("TestPopAtIndex/valid_index", func(t *testing.T) {
-		arrayList.elements = []int{1, 2, 3, 4, 5}
-		popElement, err := arrayList.PopAtIndex(2)
-		if err != nil {
-			t.Errorf("PopAtIndex() error = %v, want nil", err)
-		}
-		if popElement != 3 {
-			t.Errorf("PopAtIndex() = %v, want %v", popElement, 3)
-		}
-		if len(arrayList.elements) != 4 {
-			t.Errorf("PopAtIndex() remaining elements count = %v, want %v", len(arrayList.elements), 4)
-		}
-	})
-
-	t.Run("TestPopAtIndex/index_out_of_range", func(t *testing.T) {
-		arrayList.elements = []int{1, 2, 3, 4, 5}
-		_, err := arrayList.PopAtIndex(7)
-		assert.ErrorIs(t, err, ErrIndexOutOfRange)
-	})
-
-	t.Run("TestPopAtIndex/negative_index", func(t *testing.T) {
-		arrayList.elements = []int{1, 2, 3, 4, 5}
-		_, err := arrayList.PopAtIndex(-1)
-		assert.ErrorIs(t, err, ErrIndexOutOfRange)
-	})
-}
-
-func TestArrayList_Pop(t *testing.T) {
-	// Create a comparator function for integers
-	cmp := func(a, b int) int8 {
-		if a < b {
-			return -1
-		}
-		if a > b {
-			return 1
-		}
-		return 0
-	}
-	arrayList := New(cmp)
-
-	t.Run("TestPop/valid_pop", func(t *testing.T) {
-		arrayList.elements = []int{1, 2, 3, 4, 5}
-		popElement, err := arrayList.Pop()
-		if err != nil {
-			t.Errorf("Pop() error = %v, want nil", err)
-		}
-		if popElement != 5 {
-			t.Errorf("Pop() = %v, want %v", popElement, 5)
-		}
-		if len(arrayList.elements) != 4 {
-			t.Errorf("Pop() remaining elements count = %v, want %v", len(arrayList.elements), 4)
-		}
-	})
-
-	t.Run("TestPop/empty_list", func(t *testing.T) {
-		arrayList.elements = []int{}
-		_, err := arrayList.Pop()
-		if err == nil || err.Error() != ErrEmptyList.Error() {
-			t.Errorf("Pop() error = %v, want %v", err, ErrEmptyList)
-		}
-	})
-}
-
-func TestArrayList_PopFront(t *testing.T) {
-	// Create a comparator function for integers
-	cmp := func(a, b int) int8 {
-		if a < b {
-			return -1
-		}
-		if a > b {
-			return 1
-		}
-		return 0
-	}
-	arrayList := New(cmp)
-
-	t.Run("TestPopFront/valid_pop", func(t *testing.T) {
-		arrayList.elements = []int{1, 2, 3, 4, 5}
-		popElement, err := arrayList.PopFront()
-		if err != nil {
-			t.Errorf("PopFront() error = %v, want nil", err)
-		}
-		if popElement != 1 {
-			t.Errorf("PopFront() = %v, want %v", popElement, 1)
-		}
-		if arrayList.elements[0] != 2 {
-			t.Errorf("PopFront() remaining first element = %v, want %v", arrayList.elements[0], 2)
-		}
-	})
-
-	t.Run("TestPopFront/empty_list", func(t *testing.T) {
-		arrayList.elements = []int{}
-		_, err := arrayList.PopFront()
-		if err == nil || err.Error() != ErrEmptyList.Error() {
-			t.Errorf("PopFront() error = %v, want %v", err, ErrEmptyList)
-		}
-	})
-}
-
-func TestArrayList_Set(t *testing.T) {
-	// Create a comparator function for integers
-	cmp := func(a, b int) int8 {
-		if a < b {
-			return -1
-		}
-		if a > b {
-			return 1
-		}
-		return 0
-	}
-	arrayList := New(cmp)
-
-	t.Run("TestSet/valid_index", func(t *testing.T) {
-		arrayList.elements = []int{1, 2, 3, 4, 5}
-		err := arrayList.Set(2, 6)
-		if err != nil {
-			t.Errorf("Set() error = %v, want nil", err)
-		}
-		if arrayList.elements[2] != 6 {
-			t.Errorf("Set() = %v, want %v", arrayList.elements[2], 6)
-		}
-	})
-
-	t.Run("TestSet/invalid_index_negative", func(t *testing.T) {
-		err := arrayList.Set(-1, 6)
-		assert.ErrorIs(t, err, ErrIndexOutOfRange)
-	})
-
-	t.Run("TestSet/invalid_index_out_of_bounds", func(t *testing.T) {
-		err := arrayList.Set(len(arrayList.elements), 6)
-		assert.ErrorIs(t, err, ErrIndexOutOfRange)
-	})
-}
-
-func TestArrayList_Clear(t *testing.T) {
-	// Create a comparator function for integers
-	cmp := func(a, b int) int8 {
-		if a < b {
-			return -1
-		}
-		if a > b {
-			return 1
-		}
-		return 0
-	}
-	arrayList := New(cmp)
-
-	t.Run("TestClear/empty_list", func(t *testing.T) {
-		arrayList.Clear()
-		if len(arrayList.elements) != 0 {
-			t.Errorf("Clear() = %v, want %v", len(arrayList.elements), 0)
-		}
-	})
-
-	t.Run("TestClear/non_empty_list", func(t *testing.T) {
-		arrayList.elements = []int{1, 2, 3, 4, 5}
-		arrayList.Clear()
-		if len(arrayList.elements) != 0 {
-			t.Errorf("Clear() = %v, want %v", len(arrayList.elements), 0)
-		}
-	})
-}
-
-func TestArrayList_Contains(t *testing.T) {
-	// Create a comparator function for integers
-	cmp := func(a, b int) int8 {
-		if a < b {
-			return -1
-		}
-		if a > b {
-			return 1
-		}
-		return 0
-	}
-	arrayList := New(cmp)
-	arrayList.elements = []int{1, 2, 3, 4, 5}
-
-	t.Run("TestContains/single_element_present", func(t *testing.T) {
-		result := arrayList.Contains(3)
-		if !result {
-			t.Errorf("Contains() = %v, want %v", result, true)
-		}
-	})
-
-	t.Run("TestContains/multiple_elements_present", func(t *testing.T) {
-		result := arrayList.Contains(1, 2, 3)
-		if !result {
-			t.Errorf("Contains() = %v, want %v", result, true)
-		}
-	})
-
-	t.Run("TestContains/single_element_absent", func(t *testing.T) {
-		result := arrayList.Contains(6)
-		if result {
-			t.Errorf("Contains() = %v, want %v", result, false)
-		}
-	})
-
-	t.Run("TestContains/multiple_elements_absent", func(t *testing.T) {
-		result := arrayList.Contains(6, 7, 8)
-		if result {
-			t.Errorf("Contains() = %v, want %v", result, false)
-		}
-	})
-
-	t.Run("TestContains/some_elements_absent", func(t *testing.T) {
-		result := arrayList.Contains(4, 5, 6)
-		if result {
-			t.Errorf("Contains() = %v, want %v", result, false)
-		}
-	})
-}
-
-func TestArrayList_RemoveRange(t *testing.T) {
-	// Create a comparator function for integers
-	cmp := func(a, b int) int8 {
-		if a < b {
-			return -1
-		}
-		if a > b {
-			return 1
-		}
-		return 0
-	}
-	arrayList := New(cmp)
-	arrayList.elements = []int{1, 2, 3, 4, 5}
-
-	t.Run("TestRemoveRange/valid_range", func(t *testing.T) {
-		err := arrayList.RemoveRange(1, 4)
-		if err != nil {
-			t.Fatalf("RemoveRange() error = %v, wantErr %v", err, nil)
-		}
-		if !reflect.DeepEqual(arrayList.elements, []int{1, 5}) {
-			t.Errorf("RemoveRange() = %v, want %v", arrayList.elements, []int{1, 5})
-		}
-	})
-
-	t.Run("TestRemoveRange/invalid_range", func(t *testing.T) {
-		err := arrayList.RemoveRange(4, 1)
-		if err == nil {
-			t.Fatalf("RemoveRange() error = %v, wantErr %v", err, ErrFormIndexMustBeLessThanToIndex)
-		}
-	})
-
-	t.Run("TestRemoveRange/fromIndex_out_of_range", func(t *testing.T) {
-		err := arrayList.RemoveRange(-1, 4)
-		if err == nil {
-			t.Fatalf("RemoveRange() error = %v, wantErr %v", err, ErrIndexOutOfRange)
-		}
-	})
-
-	t.Run("TestRemoveRange/toIndex_out_of_range", func(t *testing.T) {
-		err := arrayList.RemoveRange(1, 6)
-		if err == nil {
-			t.Fatalf("RemoveRange() error = %v, wantErr %v", err, ErrIndexOutOfRange)
-		}
-	})
-}
-
-func TestArrayList_SubList(t *testing.T) {
-	// Create a comparator function for integers
-	cmp := func(a, b int) int8 {
-		if a < b {
-			return -1
-		}
-		if a > b {
-			return 1
-		}
-		return 0
-	}
-	arrayList := New(cmp)
-	arrayList.elements = []int{1, 2, 3, 4, 5}
-
-	t.Run("TestSubList/valid_range", func(t *testing.T) {
-		subList, err := arrayList.SubList(1, 4)
-		if err != nil {
-			t.Fatalf("SubList() error = %v, wantErr %v", err, nil)
-		}
-		if !reflect.DeepEqual(subList, []int{2, 3, 4}) {
-			t.Errorf("SubList() = %v, want %v", subList, []int{2, 3, 4})
-		}
-	})
-
-	t.Run("TestSubList/invalid_range", func(t *testing.T) {
-		_, err := arrayList.SubList(4, 1)
-		if err == nil {
-			t.Fatalf("SubList() error = %v, wantErr %v", err, ErrFormIndexMustBeLessThanToIndex)
-		}
-	})
-
-	t.Run("TestSubList/fromIndex_out_of_range", func(t *testing.T) {
-		_, err := arrayList.SubList(-1, 4)
-		if err == nil {
-			t.Fatalf("SubList() error = %v, wantErr %v", err, ErrIndexOutOfRange)
-		}
-	})
-
-	t.Run("TestSubList/toIndex_out_of_range", func(t *testing.T) {
-		_, err := arrayList.SubList(1, 6)
-		if err == nil {
-			t.Fatalf("SubList() error = %v, wantErr %v", err, ErrIndexOutOfRange)
-		}
-	})
-}
-
-func TestArrayList_Reverse(t *testing.T) {
-	// Create a comparator function for integers
-	cmp := func(a, b int) int8 {
-		if a < b {
-			return -1
-		}
-		if a > b {
-			return 1
-		}
-		return 0
-	}
-	arrayList := New(cmp)
-
-	t.Run("TestReverse/odd_number_of_elements", func(t *testing.T) {
-		arrayList.elements = []int{1, 2, 3, 4, 5}
-		arrayList.Reverse()
-		if !reflect.DeepEqual(arrayList.elements, []int{5, 4, 3, 2, 1}) {
-			t.Errorf("Reverse() = %v, want %v", arrayList.elements, []int{5, 4, 3, 2, 1})
-		}
-	})
-
-	t.Run("TestReverse/even_number_of_elements", func(t *testing.T) {
-		arrayList.elements = []int{1, 2, 3, 4}
-		arrayList.Reverse()
-		if !reflect.DeepEqual(arrayList.elements, []int{4, 3, 2, 1}) {
-			t.Errorf("Reverse() = %v, want %v", arrayList.elements, []int{4, 3, 2, 1})
-		}
-	})
-
-	t.Run("TestReverse/single_element", func(t *testing.T) {
-		arrayList.elements = []int{1}
-		arrayList.Reverse()
-		if !reflect.DeepEqual(arrayList.elements, []int{1}) {
-			t.Errorf("Reverse() = %v, want %v", arrayList.elements, []int{1})
-		}
-	})
-
-	t.Run("TestReverse/empty_arrayList", func(t *testing.T) {
-		arrayList.elements = []int{}
-		arrayList.Reverse()
-		if !reflect.DeepEqual(arrayList.elements, []int{}) {
-			t.Errorf("Reverse() = %v, want %v", arrayList.elements, []int{})
-		}
-	})
-}
-
-func TestArrayList_RemoveIf(t *testing.T) {
-	// Create a comparator function for integers
-	cmp := func(a, b int) int8 {
-		if a < b {
-			return -1
-		}
-		if a > b {
-			return 1
-		}
-		return 0
-	}
-	arrayList := New(cmp)
-
-	t.Run("TestRemoveIf/all_elements_meet_predicate", func(t *testing.T) {
-		arrayList.elements = []int{1, 2, 3, 4, 5}
-		predicate := func(i int) bool { return i < 6 }
-		result := arrayList.RemoveIf(predicate)
-		if result != true {
-			t.Errorf("RemoveIf() = %v, want %v", result, true)
-		}
-		if !reflect.DeepEqual(arrayList.elements, []int{}) {
-			t.Errorf("RemoveIf() = %v, want %v", arrayList.elements, []int{})
-		}
-	})
-
-	t.Run("TestRemoveIf/no_elements_meet_predicate", func(t *testing.T) {
-		arrayList.elements = []int{1, 2, 3, 4, 5}
-		predicate := func(i int) bool { return i > 5 }
-		result := arrayList.RemoveIf(predicate)
-		if result != false {
-			t.Errorf("RemoveIf() = %v, want %v", result, false)
-		}
-		if !reflect.DeepEqual(arrayList.elements, []int{1, 2, 3, 4, 5}) {
-			t.Errorf("RemoveIf() = %v, want %v", arrayList.elements, []int{1, 2, 3, 4, 5})
-		}
-	})
-
-	t.Run("TestRemoveIf/some_elements_meet_predicate", func(t *testing.T) {
-		arrayList.elements = []int{1, 2, 3, 4, 5}
-		predicate := func(i int) bool { return i%2 == 0 }
-		result := arrayList.RemoveIf(predicate)
-		if result != true {
-			t.Errorf("RemoveIf() = %v, want %v", result, true)
-		}
-		if !reflect.DeepEqual(arrayList.elements, []int{1, 3, 5}) {
-			t.Errorf("RemoveIf() = %v, want %v", arrayList.elements, []int{1, 3, 5})
-		}
-	})
-
-	t.Run("TestRemoveIf/empty_arrayList", func(t *testing.T) {
-		arrayList.elements = []int{}
-		predicate := func(i int) bool { return i%2 == 0 }
-		result := arrayList.RemoveIf(predicate)
-		if result != false {
-			t.Errorf("RemoveIf() = %v, want %v", result, false)
-		}
-		if !reflect.DeepEqual(arrayList.elements, []int{}) {
-			t.Errorf("RemoveIf() = %v, want %v", arrayList.elements, []int{})
-		}
-	})
-}
-
-func TestArrayList_Sort(t *testing.T) {
-	list := New[int](func(a, b int) int8 {
-		if a < b {
-			return -1
-		} else if a > b {
-			return 1
-		}
-		return 0
-	})
-
-	// Insert unsorted elements to the list
-	list.Append(5)
-	list.Append(2)
-	list.Append(8)
-	list.Append(1)
-	list.Append(3)
-
-	// Test Sort
-	list.Sort()
-
-	// Verify the elements are sorted in ascending order
-	expected := []int{1, 2, 3, 5, 8}
-	for i := 0; i < list.Size(); i++ {
-		element, _ := list.Get(i)
-		if element != expected[i] {
-			t.Errorf("Sort() failed: got %d, expected %d", element, expected[i])
-		}
-	}
-}
-
-func TestArrayList_Copy(t *testing.T) {
-	list := New[int](nil)
-
-	// Insert elements to the list
-	list.Append(1)
-	list.Append(2)
-	list.Append(3)
-
-	// Test Copy
-	copiedList := list.Copy()
-
-	// Verify the length of the copied list is the same
-	if len(copiedList) != list.Size() {
-		t.Error("Copy() failed to copy all elements")
-	}
-
-	// Verify the elements in the copied list are the same
-	for i := 0; i < list.Size(); i++ {
-		element1, _ := list.Get(i)
-		element2 := copiedList[i]
-		if element1 != element2 {
-			t.Errorf("Copy() failed to copy element: got %d, expected %d", element2, element1)
-		}
-	}
-
-	// Modify the original list and verify the copied list remains unchanged
-	_ = list.Set(0, 100)
-	element := copiedList[0]
-	if element == 100 {
-		t.Error("Copy() failed to create a deep copy")
-	}
-}
-
-func TestArrayList_BatchSplit(t *testing.T) {
-	// Create a comparator function for integers
-	cmp := func(a, b int) int8 {
-		if a < b {
-			return -1
-		}
-		if a > b {
-			return 1
-		}
-		return 0
-	}
-	arrayList := New(cmp)
-
-	t.Run("TestBatchSplit/batchSize_is_negative", func(t *testing.T) {
-		arrayList.elements = []int{1, 2, 3, 4, 5}
-		result := arrayList.BatchSplit(-1)
-		if !reflect.DeepEqual(result, [][]int{}) {
-			t.Errorf("BatchSplit() = %v, want %v", result, [][]int{})
-		}
-	})
-
-	t.Run("TestBatchSplit/batchSize_is_zero", func(t *testing.T) {
-		arrayList.elements = []int{1, 2, 3, 4, 5}
-		result := arrayList.BatchSplit(0)
-		if !reflect.DeepEqual(result, [][]int{}) {
-			t.Errorf("BatchSplit() = %v, want %v", result, [][]int{})
-		}
-	})
-
-	t.Run("TestBatchSplit/batchSize_is_one", func(t *testing.T) {
-		arrayList.elements = []int{1, 2, 3, 4, 5}
-		result := arrayList.BatchSplit(1)
-		if !reflect.DeepEqual(result, [][]int{{1}, {2}, {3}, {4}, {5}}) {
-			t.Errorf("BatchSplit() = %v, want %v", result, [][]int{{1}, {2}, {3}, {4}, {5}})
-		}
-	})
-
-	t.Run("TestBatchSplit/batchSize_greater_than_length_of_arrayList", func(t *testing.T) {
-		arrayList.elements = []int{1, 2, 3, 4, 5}
-		result := arrayList.BatchSplit(10)
-		if !reflect.DeepEqual(result, [][]int{{1, 2, 3, 4, 5}}) {
-			t.Errorf("BatchSplit() = %v, want %v", result, [][]int{{1, 2, 3, 4, 5}})
-		}
-	})
-
-	t.Run("TestBatchSplit/batchSize_less_than_length_of_arrayList", func(t *testing.T) {
-		arrayList.elements = []int{1, 2, 3, 4, 5, 6, 7, 8, 9}
-		result := arrayList.BatchSplit(3)
-		if !reflect.DeepEqual(result, [][]int{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}) {
-			t.Errorf("BatchSplit() = %v, want %v", result, [][]int{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}})
-		}
-	})
-
-	t.Run("TestBatchSplit/batchSize_cannot_divide_arrayList_evenly", func(t *testing.T) {
-		arrayList.elements = []int{1, 2, 3, 4, 5, 6, 7}
-		result := arrayList.BatchSplit(3)
-		if !reflect.DeepEqual(result, [][]int{{1, 2, 3}, {4, 5, 6}, {7}}) {
-			t.Errorf("BatchSplit() = %v, want %v", result, [][]int{{1, 2, 3}, {4, 5, 6}, {7}})
-		}
-	})
-}
-
-func TestArrayList_SlidingWindows(t *testing.T) {
-	// Create a comparator function for integers
-	cmp := func(a, b int) int8 {
-		if a < b {
-			return -1
-		}
-		if a > b {
-			return 1
-		}
-		return 0
-	}
-	arrayList := New(cmp)
-
-	t.Run("TestSlidingWindows/size_is_negative", func(t *testing.T) {
-		arrayList.elements = []int{1, 2, 3, 4, 5}
-		result := arrayList.SlidingWindows(-1)
-		if !reflect.DeepEqual(result, [][]int{}) {
-			t.Errorf("SlidingWindows() = %v, want %v", result, [][]int{})
-		}
-	})
-
-	t.Run("TestSlidingWindows/size_is_zero", func(t *testing.T) {
-		arrayList.elements = []int{1, 2, 3, 4, 5}
-		result := arrayList.SlidingWindows(0)
-		if !reflect.DeepEqual(result, [][]int{}) {
-			t.Errorf("SlidingWindows() = %v, want %v", result, [][]int{})
-		}
-	})
-
-	t.Run("TestSlidingWindows/size_is_one", func(t *testing.T) {
-		arrayList.elements = []int{1, 2, 3, 4, 5}
-		result := arrayList.SlidingWindows(1)
-		if !reflect.DeepEqual(result, [][]int{{1}, {2}, {3}, {4}, {5}}) {
-			t.Errorf("SlidingWindows() = %v, want %v", result, [][]int{{1}, {2}, {3}, {4}, {5}})
-		}
-	})
-
-	t.Run("TestSlidingWindows/size_greater_than_length_of_arrayList", func(t *testing.T) {
-		arrayList.elements = []int{1, 2, 3, 4, 5}
-		result := arrayList.SlidingWindows(10)
-		if !reflect.DeepEqual(result, [][]int{{1, 2, 3, 4, 5}}) {
-			t.Errorf("SlidingWindows() = %v, want %v", result, [][]int{{1, 2, 3, 4, 5}})
-		}
-	})
-
-	t.Run("TestSlidingWindows/size_less_than_length_of_arrayList", func(t *testing.T) {
-		arrayList.elements = []int{1, 2, 3, 4, 5}
-		result := arrayList.SlidingWindows(3)
-		if !reflect.DeepEqual(result, [][]int{{1, 2, 3}, {2, 3, 4}, {3, 4, 5}}) {
-			t.Errorf("SlidingWindows() = %v, want %v", result, [][]int{{1, 2, 3}, {2, 3, 4}, {3, 4, 5}})
-		}
-	})
-}
-
-func TestArrayList_BringElementToFront(t *testing.T) {
-	testCases := []struct {
+func TestList_Append(t *testing.T) {
+	tests := []struct {
 		name     string
-		input    []int
+		elements []int
+		append   int
+		want     []int
+	}{
+		{
+			name:     "append to an empty list",
+			elements: []int{},
+			append:   1,
+			want:     []int{1},
+		},
+		{
+			name:     "append to a non-empty list",
+			elements: []int{1, 2, 3},
+			append:   4,
+			want:     []int{1, 2, 3, 4},
+		},
+		{
+			name:     "append zero to a list",
+			elements: []int{1, 2, 3},
+			append:   0,
+			want:     []int{1, 2, 3, 0},
+		},
+		{
+			name:     "append negative number to a list",
+			elements: []int{1, 2, 3},
+			append:   -1,
+			want:     []int{1, 2, 3, -1},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			l := New[int](IntsCmp, WithInitialCapacity[int](len(tt.elements)+1))
+			for _, element := range tt.elements {
+				l.Append(element)
+			}
+
+			l.Append(tt.append)
+			assert.Equal(t, tt.want, l.elements)
+		})
+	}
+}
+
+func TestList_Prepend(t *testing.T) {
+	tests := []struct {
+		name     string
+		elements []int
+		prepend  int
+		want     []int
+	}{
+		{
+			name:     "prepend to an empty list",
+			elements: []int{},
+			prepend:  1,
+			want:     []int{1},
+		},
+		{
+			name:     "prepend to a non-empty list",
+			elements: []int{1, 2, 3},
+			prepend:  4,
+			want:     []int{4, 1, 2, 3},
+		},
+		{
+			name:     "prepend zero to a list",
+			elements: []int{1, 2, 3},
+			prepend:  0,
+			want:     []int{0, 1, 2, 3},
+		},
+		{
+			name:     "prepend negative number to a list",
+			elements: []int{1, 2, 3},
+			prepend:  -1,
+			want:     []int{-1, 1, 2, 3},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			l := New[int](IntsCmp, WithInitialCapacity[int](len(tt.elements)+1))
+			for _, element := range tt.elements {
+				l.Append(element)
+			}
+
+			l.Prepend(tt.prepend)
+			assert.Equal(t, tt.want, l.elements)
+		})
+	}
+}
+
+func TestList_Insert(t *testing.T) {
+	tests := []struct {
+		name      string
+		elements  []int
+		insertIdx int
+		insertVal int
+		want      []int
+		wantErr   error
+	}{
+		{
+			name:      "insert into an empty list",
+			elements:  []int{},
+			insertIdx: 0,
+			insertVal: 1,
+			want:      []int{1},
+			wantErr:   nil,
+		},
+		{
+			name:      "insert at the beginning of a list",
+			elements:  []int{1, 2, 3},
+			insertIdx: 0,
+			insertVal: 4,
+			want:      []int{4, 1, 2, 3},
+			wantErr:   nil,
+		},
+		{
+			name:      "insert in the middle of a list",
+			elements:  []int{1, 2, 3},
+			insertIdx: 1,
+			insertVal: 4,
+			want:      []int{1, 4, 2, 3},
+			wantErr:   nil,
+		},
+		{
+			name:      "insert at the end of a list",
+			elements:  []int{1, 2, 3},
+			insertIdx: 3,
+			insertVal: 4,
+			want:      []int{1, 2, 3, 4},
+			wantErr:   nil,
+		},
+		{
+			name:      "insert at an index larger than list length",
+			elements:  []int{1, 2, 3},
+			insertIdx: 4,
+			insertVal: 4,
+			want:      nil,
+			wantErr:   ErrIndexOutOfRange,
+		},
+		{
+			name:      "insert at a negative index",
+			elements:  []int{1, 2, 3},
+			insertIdx: -1,
+			insertVal: 4,
+			want:      nil,
+			wantErr:   ErrIndexOutOfRange,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			l := New[int](IntsCmp, WithInitialCapacity[int](len(tt.elements)+1))
+			for _, element := range tt.elements {
+				l.Append(element)
+			}
+
+			err := l.Insert(tt.insertIdx, tt.insertVal)
+			assert.ErrorIs(t, err, tt.wantErr)
+		})
+	}
+}
+
+func TestList_InsertAll(t *testing.T) {
+	tests := []struct {
+		name        string
+		elements    []int
+		insertIdx   int
+		insertElems []int
+		want        []int
+		wantErr     error
+	}{
+		{
+			name:        "insert multiple elements into an empty list",
+			elements:    []int{},
+			insertIdx:   0,
+			insertElems: []int{1, 2, 3},
+			want:        []int{1, 2, 3},
+			wantErr:     nil,
+		},
+		{
+			name:        "insert multiple elements at the beginning of a list",
+			elements:    []int{1, 2, 3},
+			insertIdx:   0,
+			insertElems: []int{4, 5},
+			want:        []int{4, 5, 1, 2, 3},
+			wantErr:     nil,
+		},
+		{
+			name:        "insert multiple elements in the middle of a list",
+			elements:    []int{1, 2, 3},
+			insertIdx:   1,
+			insertElems: []int{4, 5},
+			want:        []int{1, 4, 5, 2, 3},
+			wantErr:     nil,
+		},
+		{
+			name:        "insert multiple elements at the end of a list",
+			elements:    []int{1, 2, 3},
+			insertIdx:   3,
+			insertElems: []int{4, 5},
+			want:        []int{1, 2, 3, 4, 5},
+			wantErr:     nil,
+		},
+		{
+			name:        "insert multiple elements at an index larger than list length",
+			elements:    []int{1, 2, 3},
+			insertIdx:   4,
+			insertElems: []int{4, 5},
+			want:        []int{1, 2, 3},
+			wantErr:     ErrIndexOutOfRange,
+		},
+		{
+			name:        "insert multiple elements at a negative index",
+			elements:    []int{1, 2, 3},
+			insertIdx:   -1,
+			insertElems: []int{4, 5},
+			want:        []int{1, 2, 3},
+			wantErr:     ErrIndexOutOfRange,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			l := New[int](IntsCmp, WithInitialCapacity[int](len(tt.elements)+len(tt.insertElems)))
+			for _, element := range tt.elements {
+				l.Append(element)
+			}
+
+			err := l.InsertAll(tt.insertIdx, tt.insertElems)
+			assert.ErrorIs(t, err, tt.wantErr)
+			assert.Equal(t, tt.want, l.elements)
+		})
+	}
+}
+
+func TestList_Get(t *testing.T) {
+	tests := []struct {
+		name      string
+		elements  []int
+		getIdx    int
+		want      int
+		wantError error
+	}{
+		{
+			name:      "get from an empty list",
+			elements:  []int{},
+			getIdx:    0,
+			want:      0,
+			wantError: ErrIndexOutOfRange,
+		},
+		{
+			name:      "get at the beginning of a list",
+			elements:  []int{1, 2, 3},
+			getIdx:    0,
+			want:      1,
+			wantError: nil,
+		},
+		{
+			name:      "get in the middle of a list",
+			elements:  []int{1, 2, 3},
+			getIdx:    1,
+			want:      2,
+			wantError: nil,
+		},
+		{
+			name:      "get at the end of a list",
+			elements:  []int{1, 2, 3},
+			getIdx:    2,
+			want:      3,
+			wantError: nil,
+		},
+		{
+			name:      "get at an index larger than list length",
+			elements:  []int{1, 2, 3},
+			getIdx:    3,
+			want:      0,
+			wantError: ErrIndexOutOfRange,
+		},
+		{
+			name:      "get at a negative index",
+			elements:  []int{1, 2, 3},
+			getIdx:    -1,
+			want:      0,
+			wantError: ErrIndexOutOfRange,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			l := New[int](IntsCmp, WithInitialCapacity[int](len(tt.elements)))
+			for _, element := range tt.elements {
+				l.Append(element)
+			}
+
+			got, err := l.Get(tt.getIdx)
+			assert.ErrorIs(t, err, tt.wantError)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestList_IndexOf(t *testing.T) {
+	tests := []struct {
+		name     string
+		elements []int
+		find     int
+		want     int
+	}{
+		{
+			name:     "find element in an empty list",
+			elements: []int{},
+			find:     1,
+			want:     -1,
+		},
+		{
+			name:     "find element at the beginning of a list",
+			elements: []int{1, 2, 3},
+			find:     1,
+			want:     0,
+		},
+		{
+			name:     "find element in the middle of a list",
+			elements: []int{1, 2, 3},
+			find:     2,
+			want:     1,
+		},
+		{
+			name:     "find element at the end of a list",
+			elements: []int{1, 2, 3},
+			find:     3,
+			want:     2,
+		},
+		{
+			name:     "find non-existing element in a list",
+			elements: []int{1, 2, 3},
+			find:     4,
+			want:     -1,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			l := New[int](IntsCmp, WithInitialCapacity[int](len(tt.elements)))
+			for _, element := range tt.elements {
+				l.Append(element)
+			}
+
+			got := l.IndexOf(tt.find)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestList_LastIndexOf(t *testing.T) {
+	tests := []struct {
+		name     string
+		elements []int
+		find     int
+		want     int
+	}{
+		{
+			name:     "find element in an empty list",
+			elements: []int{},
+			find:     1,
+			want:     -1,
+		},
+		{
+			name:     "find element at the beginning of a list",
+			elements: []int{1, 2, 3, 1},
+			find:     1,
+			want:     3,
+		},
+		{
+			name:     "find element in the middle of a list",
+			elements: []int{1, 2, 3, 2, 4},
+			find:     2,
+			want:     3,
+		},
+		{
+			name:     "find element at the end of a list",
+			elements: []int{1, 2, 3, 4},
+			find:     4,
+			want:     3,
+		},
+		{
+			name:     "find non-existing element in a list",
+			elements: []int{1, 2, 3},
+			find:     5,
+			want:     -1,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			l := New[int](IntsCmp, WithInitialCapacity[int](len(tt.elements)))
+			for _, element := range tt.elements {
+				l.Append(element)
+			}
+
+			got := l.LastIndexOf(tt.find)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestList_Remove(t *testing.T) {
+	tests := []struct {
+		name      string
+		elements  []int
+		removeIdx int
+		want      []int
+		wantError error
+	}{
+		{
+			name:      "remove from an empty list",
+			elements:  []int{},
+			removeIdx: 0,
+			want:      []int{},
+			wantError: ErrIndexOutOfRange,
+		},
+		{
+			name:      "remove at the beginning of a list",
+			elements:  []int{1, 2, 3},
+			removeIdx: 0,
+			want:      []int{2, 3},
+			wantError: nil,
+		},
+		{
+			name:      "remove in the middle of a list",
+			elements:  []int{1, 2, 3},
+			removeIdx: 1,
+			want:      []int{1, 3},
+			wantError: nil,
+		},
+		{
+			name:      "remove at the end of a list",
+			elements:  []int{1, 2, 3},
+			removeIdx: 2,
+			want:      []int{1, 2},
+			wantError: nil,
+		},
+		{
+			name:      "remove at an index larger than list length",
+			elements:  []int{1, 2, 3},
+			removeIdx: 3,
+			want:      []int{1, 2, 3},
+			wantError: ErrIndexOutOfRange,
+		},
+		{
+			name:      "remove at a negative index",
+			elements:  []int{1, 2, 3},
+			removeIdx: -1,
+			want:      []int{1, 2, 3},
+			wantError: ErrIndexOutOfRange,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			l := New[int](IntsCmp, WithInitialCapacity[int](len(tt.elements)))
+			for _, element := range tt.elements {
+				l.Append(element)
+			}
+			err := l.Remove(tt.removeIdx)
+			assert.ErrorIs(t, err, tt.wantError)
+			assert.Equal(t, tt.want, l.elements)
+		})
+	}
+}
+
+func TestList_RemoveUnorderedAtIndex(t *testing.T) {
+	tests := []struct {
+		name      string
+		elements  []int
+		removeIdx int
+		want      []int
+		wantError error
+	}{
+		{
+			name:      "remove from an empty list",
+			elements:  []int{},
+			removeIdx: 0,
+			want:      []int{},
+			wantError: ErrIndexOutOfRange,
+		},
+		{
+			name:      "remove at the beginning of a list",
+			elements:  []int{1, 2, 3},
+			removeIdx: 0,
+			want:      []int{3, 2},
+			wantError: nil,
+		},
+		{
+			name:      "remove in the middle of a list",
+			elements:  []int{1, 2, 3},
+			removeIdx: 1,
+			want:      []int{1, 3},
+			wantError: nil,
+		},
+		{
+			name:      "remove at the end of a list",
+			elements:  []int{1, 2, 3},
+			removeIdx: 2,
+			want:      []int{1, 2},
+			wantError: nil,
+		},
+		{
+			name:      "remove at an index larger than list length",
+			elements:  []int{1, 2, 3},
+			removeIdx: 3,
+			want:      []int{1, 2, 3},
+			wantError: ErrIndexOutOfRange,
+		},
+		{
+			name:      "remove at a negative index",
+			elements:  []int{1, 2, 3},
+			removeIdx: -1,
+			want:      []int{1, 2, 3},
+			wantError: ErrIndexOutOfRange,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			l := New[int](IntsCmp, WithInitialCapacity[int](len(tt.elements)))
+			for _, element := range tt.elements {
+				l.Append(element)
+			}
+
+			err := l.RemoveUnorderedAtIndex(tt.removeIdx)
+			assert.ErrorIs(t, err, tt.wantError)
+			assert.Equal(t, tt.want, l.elements)
+		})
+	}
+}
+
+func TestList_PopAtIndex(t *testing.T) {
+	tests := []struct {
+		name      string
+		elements  []int
+		popIdx    int
+		want      int
+		wantList  []int
+		wantError error
+	}{
+		{
+			name:      "pop from an empty list",
+			elements:  []int{},
+			popIdx:    0,
+			want:      0,
+			wantList:  []int{},
+			wantError: ErrIndexOutOfRange,
+		},
+		{
+			name:      "pop at the beginning of a list",
+			elements:  []int{1, 2, 3},
+			popIdx:    0,
+			want:      1,
+			wantList:  []int{2, 3},
+			wantError: nil,
+		},
+		{
+			name:      "pop in the middle of a list",
+			elements:  []int{1, 2, 3},
+			popIdx:    1,
+			want:      2,
+			wantList:  []int{1, 3},
+			wantError: nil,
+		},
+		{
+			name:      "pop at the end of a list",
+			elements:  []int{1, 2, 3},
+			popIdx:    2,
+			want:      3,
+			wantList:  []int{1, 2},
+			wantError: nil,
+		},
+		{
+			name:      "pop at an index larger than list length",
+			elements:  []int{1, 2, 3},
+			popIdx:    3,
+			want:      0,
+			wantList:  []int{1, 2, 3},
+			wantError: ErrIndexOutOfRange,
+		},
+		{
+			name:      "pop at a negative index",
+			elements:  []int{1, 2, 3},
+			popIdx:    -1,
+			want:      0,
+			wantList:  []int{1, 2, 3},
+			wantError: ErrIndexOutOfRange,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			l := New[int](IntsCmp, WithInitialCapacity[int](len(tt.elements)))
+			for _, element := range tt.elements {
+				l.Append(element)
+			}
+
+			got, err := l.PopAtIndex(tt.popIdx)
+			assert.ErrorIs(t, err, tt.wantError)
+			assert.Equal(t, tt.want, got)
+			assert.Equal(t, tt.wantList, l.elements)
+		})
+	}
+}
+
+func TestList_Pop(t *testing.T) {
+	tests := []struct {
+		name      string
+		elements  []int
+		want      int
+		wantList  []int
+		wantError error
+	}{
+		{
+			name:      "pop from an empty list",
+			elements:  []int{},
+			want:      0,
+			wantList:  []int{},
+			wantError: ErrEmptyList,
+		},
+		{
+			name:      "pop from a list with one element",
+			elements:  []int{1},
+			want:      1,
+			wantList:  []int{},
+			wantError: nil,
+		},
+		{
+			name:      "pop from a list with multiple elements",
+			elements:  []int{1, 2, 3},
+			want:      3,
+			wantList:  []int{1, 2},
+			wantError: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			l := New[int](IntsCmp, WithInitialCapacity[int](len(tt.elements)))
+			for _, element := range tt.elements {
+				l.Append(element)
+			}
+
+			got, err := l.Pop()
+			assert.ErrorIs(t, err, tt.wantError)
+			assert.Equal(t, tt.want, got)
+			assert.Equal(t, tt.wantList, l.elements)
+		})
+	}
+}
+
+func TestList_PopFront(t *testing.T) {
+	tests := []struct {
+		name      string
+		elements  []int
+		want      int
+		wantList  []int
+		wantError error
+	}{
+		{
+			name:      "pop front from an empty list",
+			elements:  []int{},
+			want:      0,
+			wantList:  []int{},
+			wantError: ErrEmptyList,
+		},
+		{
+			name:      "pop front from a list with one element",
+			elements:  []int{1},
+			want:      1,
+			wantList:  []int{},
+			wantError: nil,
+		},
+		{
+			name:      "pop front from a list with multiple elements",
+			elements:  []int{1, 2, 3},
+			want:      1,
+			wantList:  []int{2, 3},
+			wantError: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			l := New[int](IntsCmp, WithInitialCapacity[int](len(tt.elements)))
+			for _, element := range tt.elements {
+				l.Append(element)
+			}
+
+			got, err := l.PopFront()
+			assert.ErrorIs(t, err, tt.wantError)
+			assert.Equal(t, tt.want, got)
+			assert.Equal(t, tt.wantList, l.elements)
+		})
+	}
+}
+
+func TestList_Set(t *testing.T) {
+	tests := []struct {
+		name      string
+		elements  []int
+		index     int
+		value     int
+		wantList  []int
+		wantError error
+	}{
+		{
+			name:      "set in an empty list",
+			elements:  []int{},
+			index:     0,
+			value:     1,
+			wantList:  []int{},
+			wantError: ErrIndexOutOfRange,
+		},
+		{
+			name:      "set at a negative index",
+			elements:  []int{1},
+			index:     -1,
+			value:     2,
+			wantList:  []int{1},
+			wantError: ErrIndexOutOfRange,
+		},
+		{
+			name:      "set at an out-of-range index",
+			elements:  []int{1},
+			index:     1,
+			value:     2,
+			wantList:  []int{1},
+			wantError: ErrIndexOutOfRange,
+		},
+		{
+			name:      "set at a valid index",
+			elements:  []int{1, 2, 3},
+			index:     1,
+			value:     4,
+			wantList:  []int{1, 4, 3},
+			wantError: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			l := New[int](IntsCmp, WithInitialCapacity[int](len(tt.elements)))
+			for _, element := range tt.elements {
+				l.Append(element)
+			}
+
+			err := l.Set(tt.index, tt.value)
+			assert.ErrorIs(t, err, tt.wantError)
+			assert.Equal(t, tt.wantList, l.elements)
+		})
+	}
+}
+
+func TestList_Clear(t *testing.T) {
+	tests := []struct {
+		name     string
+		elements []int
+	}{
+		{
+			name:     "clear an empty list",
+			elements: []int{},
+		},
+		{
+			name:     "clear a list with one element",
+			elements: []int{1},
+		},
+		{
+			name:     "clear a list with multiple elements",
+			elements: []int{1, 2, 3},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			l := New[int](IntsCmp, WithInitialCapacity[int](len(tt.elements)))
+			for _, element := range tt.elements {
+				l.Append(element)
+			}
+
+			l.Clear()
+
+			assert.Equal(t, 0, len(l.elements))
+		})
+	}
+}
+
+func TestList_Contains(t *testing.T) {
+	tests := []struct {
+		name     string
+		elements []int
+		values   []int
+		want     bool
+	}{
+		{
+			name:     "empty list contains nothing",
+			elements: []int{},
+			values:   []int{1},
+			want:     false,
+		},
+		{
+			name:     "single element list contains its element",
+			elements: []int{1},
+			values:   []int{1},
+			want:     true,
+		},
+		{
+			name:     "single element list does not contain other elements",
+			elements: []int{1},
+			values:   []int{2},
+			want:     false,
+		},
+		{
+			name:     "multiple elements list contains its elements",
+			elements: []int{1, 2, 3},
+			values:   []int{1, 3},
+			want:     true,
+		},
+		{
+			name:     "multiple elements list does not contain other elements",
+			elements: []int{1, 2, 3},
+			values:   []int{4},
+			want:     false,
+		},
+		{
+			name:     "multiple elements list contains some but not all values",
+			elements: []int{1, 2, 3},
+			values:   []int{1, 4},
+			want:     false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			l := New[int](IntsCmp, WithInitialCapacity[int](len(tt.elements)))
+			for _, element := range tt.elements {
+				l.Append(element)
+			}
+
+			got := l.Contains(tt.values...)
+
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestList_RemoveRange(t *testing.T) {
+	tests := []struct {
+		name      string
+		elements  []int
+		fromIndex int
+		toIndex   int
+		want      []int
+		wantError error
+	}{
+		{
+			name:      "remove range from an empty list",
+			elements:  []int{},
+			fromIndex: 0,
+			toIndex:   0,
+			want:      []int{},
+			wantError: ErrFormIndexMustBeLessThanToIndex,
+		},
+		{
+			name:      "remove range with fromIndex == toIndex",
+			elements:  []int{1, 2, 3},
+			fromIndex: 1,
+			toIndex:   1,
+			want:      []int{1, 2, 3},
+			wantError: ErrFormIndexMustBeLessThanToIndex,
+		},
+		{
+			name:      "remove range with fromIndex > toIndex",
+			elements:  []int{1, 2, 3},
+			fromIndex: 2,
+			toIndex:   1,
+			want:      []int{1, 2, 3},
+			wantError: ErrFormIndexMustBeLessThanToIndex,
+		},
+		{
+			name:      "remove range from single element list",
+			elements:  []int{1},
+			fromIndex: 0,
+			toIndex:   1,
+			want:      []int{},
+			wantError: nil,
+		},
+		{
+			name:      "remove range from multiple elements list",
+			elements:  []int{1, 2, 3, 4, 5},
+			fromIndex: 1,
+			toIndex:   4,
+			want:      []int{1, 5},
+			wantError: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			l := New[int](IntsCmp, WithInitialCapacity[int](len(tt.elements)))
+			for _, element := range tt.elements {
+				l.Append(element)
+			}
+
+			err := l.RemoveRange(tt.fromIndex, tt.toIndex)
+
+			assert.ErrorIs(t, err, tt.wantError)
+			assert.Equal(t, tt.want, l.elements)
+		})
+	}
+}
+
+func TestList_SubList(t *testing.T) {
+	tests := []struct {
+		name      string
+		elements  []int
+		fromIndex int
+		toIndex   int
+		want      []int
+		wantError error
+	}{
+		{
+			name:      "sub list from an empty list",
+			elements:  []int{},
+			fromIndex: 0,
+			toIndex:   0,
+			want:      nil,
+			wantError: ErrFormIndexMustBeLessThanToIndex,
+		},
+		{
+			name:      "sub list with fromIndex == toIndex",
+			elements:  []int{1, 2, 3},
+			fromIndex: 1,
+			toIndex:   1,
+			want:      nil,
+			wantError: ErrFormIndexMustBeLessThanToIndex,
+		},
+		{
+			name:      "sub list with fromIndex > toIndex",
+			elements:  []int{1, 2, 3},
+			fromIndex: 2,
+			toIndex:   1,
+			want:      nil,
+			wantError: ErrFormIndexMustBeLessThanToIndex,
+		},
+		{
+			name:      "sub list from single element list",
+			elements:  []int{1},
+			fromIndex: 0,
+			toIndex:   1,
+			want:      []int{1},
+			wantError: nil,
+		},
+		{
+			name:      "sub list from multiple elements list",
+			elements:  []int{1, 2, 3, 4, 5},
+			fromIndex: 1,
+			toIndex:   4,
+			want:      []int{2, 3, 4},
+			wantError: nil,
+		},
+		{
+			name:      "sub list with toIndex out of range",
+			elements:  []int{1, 2, 3, 4, 5},
+			fromIndex: 1,
+			toIndex:   6,
+			want:      nil,
+			wantError: ErrIndexOutOfRange,
+		},
+		{
+			name:      "sub list with fromIndex out of range",
+			elements:  []int{1, 2, 3, 4, 5},
+			fromIndex: -1,
+			toIndex:   4,
+			want:      nil,
+			wantError: ErrIndexOutOfRange,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			l := New[int](IntsCmp, WithInitialCapacity[int](len(tt.elements)))
+			for _, element := range tt.elements {
+				l.Append(element)
+			}
+
+			got, err := l.SubList(tt.fromIndex, tt.toIndex)
+
+			assert.ErrorIs(t, err, tt.wantError)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestList_Reverse(t *testing.T) {
+	tests := []struct {
+		name     string
+		elements []int
+		want     []int
+	}{
+		{
+			name:     "reverse an empty list",
+			elements: []int{},
+			want:     []int{},
+		},
+		{
+			name:     "reverse a single element list",
+			elements: []int{1},
+			want:     []int{1},
+		},
+		{
+			name:     "reverse a two elements list",
+			elements: []int{1, 2},
+			want:     []int{2, 1},
+		},
+		{
+			name:     "reverse a multiple elements list",
+			elements: []int{1, 2, 3, 4, 5},
+			want:     []int{5, 4, 3, 2, 1},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			l := New[int](IntsCmp, WithInitialCapacity[int](len(tt.elements)))
+			for _, element := range tt.elements {
+				l.Append(element)
+			}
+
+			l.Reverse()
+
+			assert.Equal(t, tt.want, l.elements)
+		})
+	}
+}
+
+func TestList_RemoveIf(t *testing.T) {
+	tests := []struct {
+		name      string
+		elements  []int
+		predicate func(int) bool
+		want      []int
+		hasChange bool
+	}{
+		{
+			name:      "remove from an empty list",
+			elements:  []int{},
+			predicate: func(x int) bool { return x%2 == 0 },
+			want:      []int{},
+			hasChange: false,
+		},
+		{
+			name:      "remove none from a list",
+			elements:  []int{1, 2, 3, 4, 5},
+			predicate: func(x int) bool { return x > 5 },
+			want:      []int{1, 2, 3, 4, 5},
+			hasChange: false,
+		},
+		{
+			name:      "remove some from a list",
+			elements:  []int{1, 2, 3, 4, 5},
+			predicate: func(x int) bool { return x%2 == 0 },
+			want:      []int{1, 3, 5},
+			hasChange: true,
+		},
+		{
+			name:      "remove all from a list",
+			elements:  []int{1, 2, 3, 4, 5},
+			predicate: func(x int) bool { return x >= 1 },
+			want:      []int{},
+			hasChange: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			l := New[int](IntsCmp, WithInitialCapacity[int](len(tt.elements)))
+			for _, element := range tt.elements {
+				l.Append(element)
+			}
+
+			changed := l.RemoveIf(tt.predicate)
+
+			assert.Equal(t, tt.want, l.elements)
+			assert.Equal(t, tt.hasChange, changed)
+		})
+	}
+}
+
+func TestList_Sort(t *testing.T) {
+	tests := []struct {
+		name     string
+		elements []int
+		want     []int
+	}{
+		{
+			name:     "sort empty list",
+			elements: []int{},
+			want:     []int{},
+		},
+		{
+			name:     "sort list with one element",
+			elements: []int{1},
+			want:     []int{1},
+		},
+		{
+			name:     "sort list with multiple elements",
+			elements: []int{5, 1, 3, 2, 4},
+			want:     []int{1, 2, 3, 4, 5},
+		},
+		{
+			name:     "sort list with duplicate elements",
+			elements: []int{5, 1, 3, 2, 4, 3, 2},
+			want:     []int{1, 2, 2, 3, 3, 4, 5},
+		},
+		{
+			name:     "sort already sorted list",
+			elements: []int{1, 2, 3, 4, 5},
+			want:     []int{1, 2, 3, 4, 5},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			l := New[int](IntsCmp, WithInitialCapacity[int](len(tt.elements)))
+			for _, element := range tt.elements {
+				l.Append(element)
+			}
+
+			l.Sort()
+
+			assert.Equal(t, tt.want, l.elements)
+		})
+	}
+}
+
+func TestList_Copy(t *testing.T) {
+	tests := []struct {
+		name     string
+		elements []int
+	}{
+		{
+			name:     "copy empty list",
+			elements: []int{},
+		},
+		{
+			name:     "copy list with one element",
+			elements: []int{1},
+		},
+		{
+			name:     "copy list with multiple elements",
+			elements: []int{1, 2, 3, 4, 5},
+		},
+		{
+			name:     "copy list with duplicate elements",
+			elements: []int{5, 1, 3, 2, 4, 3, 2},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			l := New[int](IntsCmp, WithInitialCapacity[int](len(tt.elements)))
+			for _, element := range tt.elements {
+				l.Append(element)
+			}
+
+			got := l.Copy()
+
+			assert.Equal(t, l.elements, got)
+
+			// Change original list and make sure the copy doesn't change
+			l.Append(10)
+			assert.NotEqual(t, l.elements, got)
+		})
+	}
+}
+
+func TestList_BatchSplit(t *testing.T) {
+	tests := []struct {
+		name        string
+		elements    []int
+		batchSize   int
+		wantBatches [][]int
+	}{
+		{
+			name:        "split empty list",
+			elements:    []int{},
+			batchSize:   2,
+			wantBatches: [][]int{},
+		},
+		{
+			name:      "split list with one element",
+			elements:  []int{1},
+			batchSize: 2,
+			wantBatches: [][]int{
+				{1},
+			},
+		},
+		{
+			name:      "split list with multiple elements, size less than batch size",
+			elements:  []int{1, 2, 3},
+			batchSize: 5,
+			wantBatches: [][]int{
+				{1, 2, 3},
+			},
+		},
+		{
+			name:      "split list with multiple elements, size equals batch size",
+			elements:  []int{1, 2, 3, 4, 5},
+			batchSize: 5,
+			wantBatches: [][]int{
+				{1, 2, 3, 4, 5},
+			},
+		},
+		{
+			name:      "split list with multiple elements, size greater than batch size",
+			elements:  []int{1, 2, 3, 4, 5, 6},
+			batchSize: 2,
+			wantBatches: [][]int{
+				{1, 2},
+				{3, 4},
+				{5, 6},
+			},
+		},
+		{
+			name:      "split list with multiple elements, size is not a multiple of batch size",
+			elements:  []int{1, 2, 3, 4, 5, 6, 7},
+			batchSize: 3,
+			wantBatches: [][]int{
+				{1, 2, 3},
+				{4, 5, 6},
+				{7},
+			},
+		},
+		{
+			name:        "split list with negative batch size",
+			elements:    []int{1, 2, 3, 4, 5},
+			batchSize:   -1,
+			wantBatches: [][]int{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			l := New[int](IntsCmp, WithInitialCapacity[int](len(tt.elements)))
+			for _, element := range tt.elements {
+				l.Append(element)
+			}
+
+			gotBatches := l.BatchSplit(tt.batchSize)
+
+			assert.Equal(t, tt.wantBatches, gotBatches)
+		})
+	}
+}
+
+func TestList_SlidingWindows(t *testing.T) {
+	tests := []struct {
+		name        string
+		elements    []int
+		windowSize  int
+		wantWindows [][]int
+	}{
+		{
+			name:        "empty list",
+			elements:    []int{},
+			windowSize:  2,
+			wantWindows: [][]int{},
+		},
+		{
+			name:       "list with one element",
+			elements:   []int{1},
+			windowSize: 2,
+			wantWindows: [][]int{
+				{1},
+			},
+		},
+		{
+			name:       "list with multiple elements, size less than window size",
+			elements:   []int{1, 2, 3},
+			windowSize: 5,
+			wantWindows: [][]int{
+				{1, 2, 3},
+			},
+		},
+		{
+			name:       "list with multiple elements, size equals window size",
+			elements:   []int{1, 2, 3, 4, 5},
+			windowSize: 5,
+			wantWindows: [][]int{
+				{1, 2, 3, 4, 5},
+			},
+		},
+		{
+			name:       "list with multiple elements, size greater than window size",
+			elements:   []int{1, 2, 3, 4, 5, 6},
+			windowSize: 2,
+			wantWindows: [][]int{
+				{1, 2},
+				{2, 3},
+				{3, 4},
+				{4, 5},
+				{5, 6},
+			},
+		},
+		{
+			name:        "list with negative window size",
+			elements:    []int{1, 2, 3, 4, 5},
+			windowSize:  -1,
+			wantWindows: [][]int{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			l := New[int](IntsCmp, WithInitialCapacity[int](len(tt.elements)))
+			for _, element := range tt.elements {
+				l.Append(element)
+			}
+
+			gotWindows := l.SlidingWindows(tt.windowSize)
+
+			assert.Equal(t, tt.wantWindows, gotWindows)
+		})
+	}
+}
+
+func TestList_BringElementToFront(t *testing.T) {
+	tests := []struct {
+		name     string
+		elements []int
 		element  int
-		expected []int
+		want     []int
 	}{
 		{
 			name:     "empty list",
-			input:    []int{},
+			elements: []int{},
 			element:  1,
-			expected: []int{1},
+			want:     []int{1},
 		},
 		{
-			name:     "element at front",
-			input:    []int{1, 2, 3, 4, 5},
+			name:     "list with one element, element is at front",
+			elements: []int{1},
 			element:  1,
-			expected: []int{1, 2, 3, 4, 5},
+			want:     []int{1},
 		},
 		{
-			name:     "element at end",
-			input:    []int{2, 3, 4, 5, 1},
-			element:  1,
-			expected: []int{1, 2, 3, 4, 5},
+			name:     "list with one element, element is not in list",
+			elements: []int{1},
+			element:  2,
+			want:     []int{2, 1},
 		},
 		{
-			name:     "element in middle",
-			input:    []int{2, 1, 3, 4, 5},
-			element:  1,
-			expected: []int{1, 2, 3, 4, 5},
+			name:     "list with multiple elements, element is in list",
+			elements: []int{1, 2, 3},
+			element:  2,
+			want:     []int{2, 1, 3},
 		},
 		{
-			name:     "element not in list",
-			input:    []int{2, 3, 4, 5},
-			element:  1,
-			expected: []int{1, 2, 3, 4, 5},
+			name:     "list with multiple elements, element is not in list",
+			elements: []int{1, 2, 3},
+			element:  4,
+			want:     []int{4, 1, 2, 3},
 		},
 	}
 
-	cmp := func(a, b int) int8 {
-		if a < b {
-			return -1
-		} else if a > b {
-			return 1
-		} else {
-			return 0
-		}
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			// Initialize ArrayList with the test case input
-			list := New(cmp, WithInitialCapacity[int](len(tc.input)))
-			list.elements = append(list.elements, tc.input...)
-
-			list.BringElementToFront(tc.element)
-
-			if !reflect.DeepEqual(list.elements, tc.expected) {
-				t.Errorf("BringElementToFront() = %v, want %v", list.elements, tc.expected)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			l := New[int](IntsCmp, WithInitialCapacity[int](len(tt.elements)))
+			for _, element := range tt.elements {
+				l.Append(element)
 			}
+
+			l.BringElementToFront(tt.element)
+
+			assert.Equal(t, tt.want, l.elements)
 		})
 	}
 }
@@ -1107,27 +1494,13 @@ func TestArrayList_RemoveDuplicates(t *testing.T) {
 		},
 	}
 
-	cmp := func(a, b int) int8 {
-		if a < b {
-			return -1
-		} else if a > b {
-			return 1
-		} else {
-			return 0
-		}
-	}
-
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			// Initialize ArrayList with the test case input
-			list := New(cmp, WithInitialCapacity[int](len(tc.input)))
+			list := New(IntsCmp, WithInitialCapacity[int](len(tc.input)))
 			list.elements = append(list.elements, tc.input...)
 
 			list.RemoveDuplicates()
-
-			if !reflect.DeepEqual(list.elements, tc.expected) {
-				t.Errorf("RemoveDuplicates() = %v, want %v", list.elements, tc.expected)
-			}
+			assert.Equal(t, tc.expected, list.elements)
 		})
 	}
 }
