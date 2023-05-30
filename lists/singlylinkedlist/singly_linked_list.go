@@ -8,7 +8,8 @@ import (
 )
 
 var (
-	ErrIndexOutOfRange = errors.New("index out of range")
+	ErrIndexOutOfRange                = errors.New("index out of range")
+	ErrFormIndexMustBeLessThanToIndex = errors.New("fromIndex must be less than or equal to toIndex")
 )
 
 var _ lists.List[int] = (*List[int])(nil)
@@ -176,8 +177,17 @@ func (l *List[T]) Remove(index int) error {
 // RemoveRange removes a range of elements from the list.
 func (l *List[T]) RemoveRange(fromIndex int, toIndex int) error {
 	// Check index bounds
-	if fromIndex < 0 || toIndex >= l.size || fromIndex > toIndex {
+	if fromIndex < 0 || toIndex > l.size {
 		return fmt.Errorf("%w, fromIndex: %d, toIndex: %d, size: %d", ErrIndexOutOfRange, fromIndex, toIndex, l.size)
+	}
+
+	if fromIndex > toIndex {
+		return fmt.Errorf("%w, fromIndex: %d, toIndex: %d", ErrFormIndexMustBeLessThanToIndex, fromIndex, toIndex)
+	}
+
+	// If fromIndex and toIndex are the same, there's no range to remove.
+	if fromIndex == toIndex {
+		return nil
 	}
 
 	// Find the element before the start of the range to be removed
@@ -188,7 +198,7 @@ func (l *List[T]) RemoveRange(fromIndex int, toIndex int) error {
 
 	// Find the element at the end of the range to be removed
 	end := prev
-	for i := fromIndex; i <= toIndex; i++ {
+	for i := fromIndex; i < toIndex; i++ {
 		end = end.next
 	}
 
@@ -201,7 +211,7 @@ func (l *List[T]) RemoveRange(fromIndex int, toIndex int) error {
 	}
 
 	// Update list size
-	l.size -= toIndex - fromIndex + 1
+	l.size -= toIndex - fromIndex
 
 	return nil
 }
@@ -256,8 +266,16 @@ func (l *List[T]) LastIndexOf(value T) int {
 // SubList returns a view of the portion of this list between the specified fromIndex, inclusive, and toIndex, exclusive.
 func (l *List[T]) SubList(fromIndex int, toIndex int) ([]T, error) {
 	// Check index bounds
-	if fromIndex < 0 || toIndex >= l.size || fromIndex > toIndex {
+	if fromIndex < 0 || toIndex > l.size {
 		return nil, fmt.Errorf("%w, fromIndex: %d, toIndex: %d, size: %d", ErrIndexOutOfRange, fromIndex, toIndex, l.size)
+	}
+
+	if fromIndex > toIndex {
+		return nil, fmt.Errorf("%w, fromIndex: %d, toIndex: %d", ErrFormIndexMustBeLessThanToIndex, fromIndex, toIndex)
+	}
+
+	if fromIndex == toIndex {
+		return []T{}, nil
 	}
 
 	// Traverse the list until the start of the sublist
@@ -268,7 +286,7 @@ func (l *List[T]) SubList(fromIndex int, toIndex int) ([]T, error) {
 
 	// Traverse the sublist and collect the values
 	var values []T
-	for i := fromIndex; i <= toIndex; i, cur = i+1, cur.next {
+	for i := fromIndex; i < toIndex; i, cur = i+1, cur.next {
 		values = append(values, cur.value)
 	}
 
