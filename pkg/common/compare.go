@@ -1,7 +1,7 @@
-package singlylinkedlist
+package common
 
 var (
-	IntCmp = func(a, b int) int8 {
+	IntsCompare = func(a, b int) int8 {
 		if a < b {
 			return -1
 		} else if a > b {
@@ -10,7 +10,7 @@ var (
 			return 0
 		}
 	}
-	StringCmp = func(a, b string) int8 {
+	StringsCompare = func(a, b string) int8 {
 		if a < b {
 			return -1
 		} else if a > b {

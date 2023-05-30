@@ -1,6 +1,7 @@
 package singlylinkedlist
 
 import (
+	"github.com/kwstars/goads/pkg/common"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -11,8 +12,8 @@ func TestList_New(t *testing.T) {
 		name string
 		cmp  interface{}
 	}{
-		{"int list", IntCmp},
-		{"string list", StringCmp},
+		{"int list", common.IntsCompare},
+		{"string list", common.StringsCompare},
 	}
 
 	for _, tt := range tests {
@@ -51,7 +52,7 @@ func TestList_Append(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			list := New(IntCmp)
+			list := New(common.IntsCompare)
 
 			for _, v := range tt.values {
 				list.Append(v)
@@ -78,7 +79,7 @@ func TestList_Prepend(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			list := New(IntCmp)
+			list := New(common.IntsCompare)
 
 			for _, v := range tt.values {
 				list.Prepend(v)
@@ -110,7 +111,7 @@ func TestList_Get(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			list := New(IntCmp)
+			list := New(common.IntsCompare)
 
 			for _, v := range tt.values {
 				list.Append(v)
@@ -198,7 +199,7 @@ func TestList_Insert(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			list := New(IntCmp)
+			list := New(common.IntsCompare)
 			for _, v := range tt.values {
 				list.Append(v)
 			}
@@ -282,7 +283,7 @@ func TestList_InsertAll(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			list := New(IntCmp)
+			list := New(common.IntsCompare)
 			for _, v := range tt.values {
 				list.Append(v)
 			}
@@ -320,7 +321,7 @@ func TestList_Clear(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			list := New(IntCmp)
+			list := New(common.IntsCompare)
 			for _, v := range tt.values {
 				list.Append(v)
 			}
@@ -386,7 +387,7 @@ func TestList_Remove(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			list := New(IntCmp)
+			list := New(common.IntsCompare)
 			for _, v := range tt.values {
 				list.Append(v)
 			}
@@ -464,7 +465,7 @@ func TestList_RemoveRange(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			list := New(IntCmp)
+			list := New(common.IntsCompare)
 			for _, v := range tt.values {
 				list.Append(v)
 			}
@@ -542,7 +543,7 @@ func TestList_Set(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			list := New(IntCmp)
+			list := New(common.IntsCompare)
 			for _, v := range tt.values {
 				list.Append(v)
 			}
@@ -594,7 +595,7 @@ func TestList_IndexOf(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			list := New(IntCmp)
+			list := New(common.IntsCompare)
 			for _, v := range tt.values {
 				list.Append(v)
 			}
@@ -640,7 +641,7 @@ func TestList_LastIndexOf(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			list := New(IntCmp)
+			list := New(common.IntsCompare)
 			for _, v := range tt.values {
 				list.Append(v)
 			}
@@ -696,7 +697,7 @@ func TestList_SubList(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			list := New(IntCmp)
+			list := New(common.IntsCompare)
 			for _, v := range tt.values {
 				list.Append(v)
 			}
