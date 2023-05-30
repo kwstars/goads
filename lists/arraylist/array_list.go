@@ -227,16 +227,21 @@ func (l *List[T]) Contains(values ...T) bool {
 
 // RemoveRange removes from this list all the elements whose index is between fromIndex, inclusive, and toIndex, exclusive.
 func (l *List[T]) RemoveRange(fromIndex int, toIndex int) error {
-	if fromIndex < 0 || fromIndex > len(l.elements) || toIndex < 0 || toIndex > len(l.elements) {
+	// Check if fromIndex and toIndex are in a valid range
+	if fromIndex < 0 || toIndex < 0 || fromIndex > len(l.elements) || toIndex > len(l.elements) {
 		return fmt.Errorf("%w, fromIndex: %d, toIndex: %d, size: %d", ErrIndexOutOfRange, fromIndex, toIndex, len(l.elements))
 	}
 
-	if fromIndex >= toIndex {
-		return fmt.Errorf("%w, fromIndex: %d, toIndex: %d", ErrFormIndexMustBeLessThanToIndex, fromIndex, toIndex)
+	if fromIndex > toIndex {
+		return ErrFormIndexMustBeLessThanToIndex
+	}
+
+	// If fromIndex and toIndex are the same, there's no range to remove.
+	if fromIndex == toIndex {
+		return nil
 	}
 
 	l.elements = append(l.elements[:fromIndex], l.elements[toIndex:]...)
-
 	return nil
 }
 
@@ -246,8 +251,13 @@ func (l *List[T]) SubList(fromIndex int, toIndex int) ([]T, error) {
 		return nil, fmt.Errorf("%w, fromIndex: %d, toIndex: %d, size: %d", ErrIndexOutOfRange, fromIndex, toIndex, len(l.elements))
 	}
 
-	if fromIndex >= toIndex {
-		return nil, fmt.Errorf("%w", ErrFormIndexMustBeLessThanToIndex)
+	if fromIndex > toIndex {
+		return nil, ErrFormIndexMustBeLessThanToIndex
+	}
+
+	// If fromIndex and toIndex are the same, there's no range to remove.
+	if fromIndex == toIndex {
+		return l.elements[:], nil
 	}
 
 	return l.elements[fromIndex:toIndex], nil

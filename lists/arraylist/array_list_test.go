@@ -943,20 +943,28 @@ func TestList_RemoveRange(t *testing.T) {
 		wantError error
 	}{
 		{
-			name:      "remove range from an empty list",
+			name:      "remove range from an empty list1",
 			elements:  []int{},
 			fromIndex: 0,
 			toIndex:   0,
 			want:      []int{},
-			wantError: ErrFormIndexMustBeLessThanToIndex,
+			wantError: nil,
+		},
+		{
+			name:      "remove range from an empty list2",
+			elements:  []int{},
+			fromIndex: 0,
+			toIndex:   1,
+			want:      []int{},
+			wantError: ErrIndexOutOfRange,
 		},
 		{
 			name:      "remove range with fromIndex == toIndex",
 			elements:  []int{1, 2, 3},
-			fromIndex: 1,
-			toIndex:   1,
+			fromIndex: 2,
+			toIndex:   2,
 			want:      []int{1, 2, 3},
-			wantError: ErrFormIndexMustBeLessThanToIndex,
+			wantError: nil,
 		},
 		{
 			name:      "remove range with fromIndex > toIndex",
@@ -1009,20 +1017,28 @@ func TestList_SubList(t *testing.T) {
 		wantError error
 	}{
 		{
-			name:      "sub list from an empty list",
+			name:      "sub list from an empty list1",
 			elements:  []int{},
 			fromIndex: 0,
 			toIndex:   0,
+			want:      []int{},
+			wantError: nil,
+		},
+		{
+			name:      "sub list from an empty list2",
+			elements:  []int{},
+			fromIndex: 0,
+			toIndex:   1,
 			want:      nil,
-			wantError: ErrFormIndexMustBeLessThanToIndex,
+			wantError: ErrIndexOutOfRange,
 		},
 		{
 			name:      "sub list with fromIndex == toIndex",
 			elements:  []int{1, 2, 3},
 			fromIndex: 1,
 			toIndex:   1,
-			want:      nil,
-			wantError: ErrFormIndexMustBeLessThanToIndex,
+			want:      []int{1, 2, 3},
+			wantError: nil,
 		},
 		{
 			name:      "sub list with fromIndex > toIndex",
