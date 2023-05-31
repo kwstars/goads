@@ -17,21 +17,21 @@ func TestList_New(t *testing.T) {
 	}{
 		{
 			name:    "without initial capacity",
-			cmp:     common.IntsCompare,
+			cmp:     common.IntComparator,
 			wantLen: 0,
 			wantCap: 0,
 		},
 		{
 			name:     "with initial capacity of 10",
 			capacity: 10,
-			cmp:      common.IntsCompare,
+			cmp:      common.IntComparator,
 			wantLen:  0,
 			wantCap:  10,
 		},
 		{
 			name:     "with initial capacity of 100",
 			capacity: 100,
-			cmp:      common.IntsCompare,
+			cmp:      common.IntComparator,
 			wantLen:  0,
 			wantCap:  100,
 		},
@@ -115,7 +115,7 @@ func TestList_Append(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			l := New[int](common.IntsCompare, WithInitialCapacity[int](len(tt.elements)+1))
+			l := New[int](common.IntComparator, WithInitialCapacity[int](len(tt.elements)+1))
 			for _, element := range tt.elements {
 				l.Append(element)
 			}
@@ -161,7 +161,7 @@ func TestList_Prepend(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			l := New[int](common.IntsCompare, WithInitialCapacity[int](len(tt.elements)+1))
+			l := New[int](common.IntComparator, WithInitialCapacity[int](len(tt.elements)+1))
 			for _, element := range tt.elements {
 				l.Append(element)
 			}
@@ -233,7 +233,7 @@ func TestList_Insert(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			l := New[int](common.IntsCompare, WithInitialCapacity[int](len(tt.elements)+1))
+			l := New[int](common.IntComparator, WithInitialCapacity[int](len(tt.elements)+1))
 			for _, element := range tt.elements {
 				l.Append(element)
 			}
@@ -305,7 +305,7 @@ func TestList_InsertAll(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			l := New[int](common.IntsCompare, WithInitialCapacity[int](len(tt.elements)+len(tt.insertElems)))
+			l := New[int](common.IntComparator, WithInitialCapacity[int](len(tt.elements)+len(tt.insertElems)))
 			for _, element := range tt.elements {
 				l.Append(element)
 			}
@@ -371,7 +371,7 @@ func TestList_Get(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			l := New[int](common.IntsCompare, WithInitialCapacity[int](len(tt.elements)))
+			l := New[int](common.IntComparator, WithInitialCapacity[int](len(tt.elements)))
 			for _, element := range tt.elements {
 				l.Append(element)
 			}
@@ -424,7 +424,7 @@ func TestList_IndexOf(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			l := New[int](common.IntsCompare, WithInitialCapacity[int](len(tt.elements)))
+			l := New[int](common.IntComparator, WithInitialCapacity[int](len(tt.elements)))
 			for _, element := range tt.elements {
 				l.Append(element)
 			}
@@ -476,7 +476,7 @@ func TestList_LastIndexOf(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			l := New[int](common.IntsCompare, WithInitialCapacity[int](len(tt.elements)))
+			l := New[int](common.IntComparator, WithInitialCapacity[int](len(tt.elements)))
 			for _, element := range tt.elements {
 				l.Append(element)
 			}
@@ -541,7 +541,7 @@ func TestList_Remove(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			l := New[int](common.IntsCompare, WithInitialCapacity[int](len(tt.elements)))
+			l := New[int](common.IntComparator, WithInitialCapacity[int](len(tt.elements)))
 			for _, element := range tt.elements {
 				l.Append(element)
 			}
@@ -606,7 +606,7 @@ func TestList_RemoveUnorderedAtIndex(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			l := New[int](common.IntsCompare, WithInitialCapacity[int](len(tt.elements)))
+			l := New[int](common.IntComparator, WithInitialCapacity[int](len(tt.elements)))
 			for _, element := range tt.elements {
 				l.Append(element)
 			}
@@ -679,7 +679,7 @@ func TestList_PopAtIndex(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			l := New[int](common.IntsCompare, WithInitialCapacity[int](len(tt.elements)))
+			l := New[int](common.IntComparator, WithInitialCapacity[int](len(tt.elements)))
 			for _, element := range tt.elements {
 				l.Append(element)
 			}
@@ -725,7 +725,7 @@ func TestList_Pop(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			l := New[int](common.IntsCompare, WithInitialCapacity[int](len(tt.elements)))
+			l := New[int](common.IntComparator, WithInitialCapacity[int](len(tt.elements)))
 			for _, element := range tt.elements {
 				l.Append(element)
 			}
@@ -771,7 +771,7 @@ func TestList_PopFront(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			l := New[int](common.IntsCompare, WithInitialCapacity[int](len(tt.elements)))
+			l := New[int](common.IntComparator, WithInitialCapacity[int](len(tt.elements)))
 			for _, element := range tt.elements {
 				l.Append(element)
 			}
@@ -829,7 +829,7 @@ func TestList_Set(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			l := New[int](common.IntsCompare, WithInitialCapacity[int](len(tt.elements)))
+			l := New[int](common.IntComparator, WithInitialCapacity[int](len(tt.elements)))
 			for _, element := range tt.elements {
 				l.Append(element)
 			}
@@ -862,7 +862,7 @@ func TestList_Clear(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			l := New[int](common.IntsCompare, WithInitialCapacity[int](len(tt.elements)))
+			l := New[int](common.IntComparator, WithInitialCapacity[int](len(tt.elements)))
 			for _, element := range tt.elements {
 				l.Append(element)
 			}
@@ -921,7 +921,7 @@ func TestList_Contains(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			l := New[int](common.IntsCompare, WithInitialCapacity[int](len(tt.elements)))
+			l := New[int](common.IntComparator, WithInitialCapacity[int](len(tt.elements)))
 			for _, element := range tt.elements {
 				l.Append(element)
 			}
@@ -986,7 +986,7 @@ func TestList_RemoveRange(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			l := New[int](common.IntsCompare, WithInitialCapacity[int](len(tt.elements)))
+			l := New[int](common.IntComparator, WithInitialCapacity[int](len(tt.elements)))
 			for _, element := range tt.elements {
 				l.Append(element)
 			}
@@ -1068,7 +1068,7 @@ func TestList_SubList(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			l := New[int](common.IntsCompare, WithInitialCapacity[int](len(tt.elements)))
+			l := New[int](common.IntComparator, WithInitialCapacity[int](len(tt.elements)))
 			for _, element := range tt.elements {
 				l.Append(element)
 			}
@@ -1111,7 +1111,7 @@ func TestList_Reverse(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			l := New[int](common.IntsCompare, WithInitialCapacity[int](len(tt.elements)))
+			l := New[int](common.IntComparator, WithInitialCapacity[int](len(tt.elements)))
 			for _, element := range tt.elements {
 				l.Append(element)
 			}
@@ -1163,7 +1163,7 @@ func TestList_RemoveIf(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			l := New[int](common.IntsCompare, WithInitialCapacity[int](len(tt.elements)))
+			l := New[int](common.IntComparator, WithInitialCapacity[int](len(tt.elements)))
 			for _, element := range tt.elements {
 				l.Append(element)
 			}
@@ -1211,7 +1211,7 @@ func TestList_Sort(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			l := New[int](common.IntsCompare, WithInitialCapacity[int](len(tt.elements)))
+			l := New[int](common.IntComparator, WithInitialCapacity[int](len(tt.elements)))
 			for _, element := range tt.elements {
 				l.Append(element)
 			}
@@ -1248,7 +1248,7 @@ func TestList_Copy(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			l := New[int](common.IntsCompare, WithInitialCapacity[int](len(tt.elements)))
+			l := New[int](common.IntComparator, WithInitialCapacity[int](len(tt.elements)))
 			for _, element := range tt.elements {
 				l.Append(element)
 			}
@@ -1331,7 +1331,7 @@ func TestList_BatchSplit(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			l := New[int](common.IntsCompare, WithInitialCapacity[int](len(tt.elements)))
+			l := New[int](common.IntComparator, WithInitialCapacity[int](len(tt.elements)))
 			for _, element := range tt.elements {
 				l.Append(element)
 			}
@@ -1402,7 +1402,7 @@ func TestList_SlidingWindows(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			l := New[int](common.IntsCompare, WithInitialCapacity[int](len(tt.elements)))
+			l := New[int](common.IntComparator, WithInitialCapacity[int](len(tt.elements)))
 			for _, element := range tt.elements {
 				l.Append(element)
 			}
@@ -1455,7 +1455,7 @@ func TestList_BringElementToFront(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			l := New[int](common.IntsCompare, WithInitialCapacity[int](len(tt.elements)))
+			l := New[int](common.IntComparator, WithInitialCapacity[int](len(tt.elements)))
 			for _, element := range tt.elements {
 				l.Append(element)
 			}
@@ -1497,7 +1497,7 @@ func TestArrayList_RemoveDuplicates(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			list := New(common.IntsCompare, WithInitialCapacity[int](len(tc.input)))
+			list := New(common.IntComparator, WithInitialCapacity[int](len(tc.input)))
 			list.elements = append(list.elements, tc.input...)
 
 			list.RemoveDuplicates()

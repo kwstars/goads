@@ -1,7 +1,11 @@
 package common
 
+// Comparator is a function that compares two elements.
+// It returns a negative number if a < b, zero if a == b, and a positive number if a > b.
+type Comparator[a any, b comparable] func(a, b) int8
+
 var (
-	IntsCompare = func(a, b int) int8 {
+	IntComparator = func(a, b int) int8 {
 		if a < b {
 			return -1
 		} else if a > b {
@@ -10,7 +14,7 @@ var (
 			return 0
 		}
 	}
-	StringsCompare = func(a, b string) int8 {
+	StringComparator = func(a, b string) int8 {
 		if a < b {
 			return -1
 		} else if a > b {
