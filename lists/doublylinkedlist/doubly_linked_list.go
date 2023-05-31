@@ -153,8 +153,18 @@ func (l *List[T]) Remove(index int) error {
 
 // RemoveRange removes a range of elements from the list.
 func (l *List[T]) RemoveRange(fromIndex int, toIndex int) error {
-	if fromIndex < 0 || toIndex >= l.size || fromIndex > toIndex {
-		return fmt.Errorf("%w, fromIndex: %d, toIndex: %d", ErrIndexOutOfRange, fromIndex, toIndex)
+	// Check index bounds
+	if fromIndex < 0 || toIndex > l.size {
+		return fmt.Errorf("%w, fromIndex: %d, toIndex: %d, size: %d", ErrIndexOutOfRange, fromIndex, toIndex, l.size)
+	}
+
+	if fromIndex > toIndex {
+		return fmt.Errorf("%w, fromIndex: %d, toIndex: %d", ErrFormIndexMustBeLessThanToIndex, fromIndex, toIndex)
+	}
+
+	// If fromIndex and toIndex are the same, there's no range to remove.
+	if fromIndex == toIndex {
+		return nil
 	}
 
 	start := l.head
@@ -163,14 +173,14 @@ func (l *List[T]) RemoveRange(fromIndex int, toIndex int) error {
 	}
 
 	end := start
-	for i := fromIndex; i <= toIndex; i++ {
+	for i := fromIndex; i < toIndex; i++ {
 		end = end.next
 	}
 
-	start.prev.next = end.next
-	end.next.prev = start.prev
+	start.prev.next = end
+	end.prev = start.prev
 
-	l.size -= toIndex - fromIndex + 1
+	l.size -= toIndex - fromIndex
 
 	return nil
 }
@@ -219,8 +229,17 @@ func (l *List[T]) LastIndexOf(value T) int {
 
 // SubList returns a view of the portion of this list between the specified fromIndex, inclusive, and toIndex, exclusive.
 func (l *List[T]) SubList(fromIndex int, toIndex int) ([]T, error) {
-	if fromIndex < 0 || toIndex > l.size || fromIndex > toIndex {
-		return nil, fmt.Errorf("%w, fromIndex: %d, toIndex: %d", ErrIndexOutOfRange, fromIndex, toIndex)
+	// Check index bounds
+	if fromIndex < 0 || toIndex > l.size {
+		return nil, fmt.Errorf("%w, fromIndex: %d, toIndex: %d, size: %d", ErrIndexOutOfRange, fromIndex, toIndex, l.size)
+	}
+
+	if fromIndex > toIndex {
+		return nil, fmt.Errorf("%w, fromIndex: %d, toIndex: %d", ErrFormIndexMustBeLessThanToIndex, fromIndex, toIndex)
+	}
+
+	if fromIndex == toIndex {
+		return []T{}, nil
 	}
 
 	cur := l.head.next
