@@ -1,12 +1,14 @@
 package doublylinkedlist
 
 import (
+	"errors"
 	"fmt"
 	"github.com/kwstars/goads/lists"
 )
 
 var (
-	ErrIndexOutOfRange = fmt.Errorf("index out of range")
+	ErrIndexOutOfRange                = errors.New("index out of range")
+	ErrFormIndexMustBeLessThanToIndex = errors.New("fromIndex must be less than or equal to toIndex")
 )
 
 var _ lists.List[int] = (*List[int])(nil)
