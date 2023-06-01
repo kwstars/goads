@@ -1,25 +1,7 @@
 package binarysearch
 
 import (
-	"github.com/kwstars/goads/pkg/common"
 	"testing"
-)
-
-type Range struct {
-	Start int
-	End   int
-}
-
-var (
-	rangeComparator = func(a Range, b int) int8 {
-		if a.Start <= b && b <= a.End {
-			return 0
-		} else if a.Start > b {
-			return 1
-		} else {
-			return -1
-		}
-	}
 )
 
 func TestFindExact(t *testing.T) {
@@ -41,7 +23,7 @@ func TestFindExact(t *testing.T) {
 			args: args[int, int]{
 				arr:    []int{1, 2, 3, 4, 5},
 				target: 4,
-				cmp:    common.IntComparator},
+				cmp:    IntComparator},
 			want: 3,
 		},
 	}
@@ -130,10 +112,10 @@ func TestFindFirstGreaterOrEqual(t *testing.T) {
 	}
 
 	intTests := []testCase[int, int]{
-		{name: "find middle value", args: args[int, int]{arr: []int{1, 2, 5, 6, 7, 8, 9}, target: 4, cmp: common.IntComparator}, want: 2},
-		{name: "not found", args: args[int, int]{arr: []int{1, 2, 5, 6, 7, 8, 9}, target: 10, cmp: common.IntComparator}, want: -1},
-		{name: "find leftmost value", args: args[int, int]{arr: []int{1, 2, 5, 6, 7, 8, 9}, target: 0, cmp: common.IntComparator}, want: 0},
-		{name: "null slice", args: args[int, int]{arr: []int{}, target: 6, cmp: common.IntComparator}, want: -1},
+		{name: "find middle value", args: args[int, int]{arr: []int{1, 2, 5, 6, 7, 8, 9}, target: 4, cmp: IntComparator}, want: 2},
+		{name: "not found", args: args[int, int]{arr: []int{1, 2, 5, 6, 7, 8, 9}, target: 10, cmp: IntComparator}, want: -1},
+		{name: "find leftmost value", args: args[int, int]{arr: []int{1, 2, 5, 6, 7, 8, 9}, target: 0, cmp: IntComparator}, want: 0},
+		{name: "null slice", args: args[int, int]{arr: []int{}, target: 6, cmp: IntComparator}, want: -1},
 	}
 
 	t.Run("search in int slice", func(t *testing.T) {
@@ -161,11 +143,11 @@ func TestFindLastLessOrEqual(t *testing.T) {
 		want int
 	}
 	intTests := []testCase[int, int]{
-		{name: "find middle value", args: args[int, int]{arr: []int{1, 2, 5, 6, 7, 8, 9}, target: 4, cmp: common.IntComparator}, want: 1},
-		{name: "find middle value", args: args[int, int]{arr: []int{1, 2, 5, 6, 7, 8, 9}, target: 5, cmp: common.IntComparator}, want: 2},
-		{name: "find rightmost value", args: args[int, int]{arr: []int{1, 2, 5, 6, 7, 8, 9}, target: 10, cmp: common.IntComparator}, want: 6},
-		{name: "find leftmost value", args: args[int, int]{arr: []int{1, 2, 5, 6, 7, 8, 9}, target: 0, cmp: common.IntComparator}, want: -1},
-		{name: "null slice", args: args[int, int]{arr: []int{}, target: 5, cmp: common.IntComparator}, want: -1},
+		{name: "find middle value", args: args[int, int]{arr: []int{1, 2, 5, 6, 7, 8, 9}, target: 4, cmp: IntComparator}, want: 1},
+		{name: "find middle value", args: args[int, int]{arr: []int{1, 2, 5, 6, 7, 8, 9}, target: 5, cmp: IntComparator}, want: 2},
+		{name: "find rightmost value", args: args[int, int]{arr: []int{1, 2, 5, 6, 7, 8, 9}, target: 10, cmp: IntComparator}, want: 6},
+		{name: "find leftmost value", args: args[int, int]{arr: []int{1, 2, 5, 6, 7, 8, 9}, target: 0, cmp: IntComparator}, want: -1},
+		{name: "null slice", args: args[int, int]{arr: []int{}, target: 5, cmp: IntComparator}, want: -1},
 	}
 	t.Run("search in int slice", func(t *testing.T) {
 		for _, tt := range intTests {

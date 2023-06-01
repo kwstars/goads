@@ -2,7 +2,7 @@ package common
 
 // Comparator is a function that compares two elements.
 // It returns a negative number if a < b, zero if a == b, and a positive number if a > b.
-type Comparator[a any, b comparable] func(a, b) int8
+type Comparator[a, b any] func(a, b) int8
 
 var (
 	IntComparator = func(a, b int) int8 {
