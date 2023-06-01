@@ -41,13 +41,6 @@ func (l *List[T]) Empty() bool {
 	return l.size == 0
 }
 
-func (l *List[T]) Full() bool {
-	// For a linked list, Full doesn't really make sense because a linked list is
-	// not typically constrained by a maximum size. This function could always
-	// return false, or it could check for a specific condition if needed.
-	return false
-}
-
 func (l *List[T]) Size() int {
 	return l.size
 }

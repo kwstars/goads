@@ -70,16 +70,6 @@ func TestList_Empty(t *testing.T) {
 	})
 }
 
-func TestArrayList_Full(t *testing.T) {
-	t.Run("Returns false", func(t *testing.T) {
-		// Create an ArrayList
-		list := New[int](nil)
-
-		isFull := list.Full()
-		assert.False(t, isFull)
-	})
-}
-
 func TestList_Append(t *testing.T) {
 	tests := []struct {
 		name     string

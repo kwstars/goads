@@ -4,8 +4,6 @@ package containers
 type Container[T any] interface {
 	// Empty determines if a container is empty.
 	Empty() bool
-	// Full determines if a container is full.
-	Full() bool
 	// Size returns the number of elements in a container.
 	Size() int
 	// Clear removes all elements from a container.

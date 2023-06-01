@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/kwstars/goads/lists"
+	"github.com/kwstars/goads/pkg/common"
 	"sort"
 )
 
@@ -32,7 +33,7 @@ func WithInitialCapacity[T any](capacity int) Option[T] {
 }
 
 // New creates a new list.
-func New[T any](cmp func(a, b T) int8, options ...Option[T]) *List[T] {
+func New[T any](cmp common.Comparator[T, T], options ...Option[T]) *List[T] {
 	var elements []T
 	for _, option := range options {
 		elements = option()
@@ -52,11 +53,6 @@ func New[T any](cmp func(a, b T) int8, options ...Option[T]) *List[T] {
 // Empty returns true if the list is empty.
 func (l *List[T]) Empty() bool {
 	return len(l.elements) == 0
-}
-
-// Full returns true if the list is full.
-func (l *List[T]) Full() bool {
-	return false
 }
 
 // Size returns the number of elements in the list.
@@ -403,4 +399,12 @@ func (l *List[T]) RemoveDuplicates() {
 	}
 	// Shrink the size of the List after removing duplicates
 	l.elements = l.elements[:slow+1]
+}
+
+// Swap swaps the elements at the specified positions in the list.
+func (l *List[T]) Swap(i, j int) {
+	if i < 0 || i >= len(l.elements) || j < 0 || j >= len(l.elements) {
+		return
+	}
+	l.elements[i], l.elements[j] = l.elements[j], l.elements[i]
 }
