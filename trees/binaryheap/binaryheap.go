@@ -13,6 +13,7 @@ package binaryheap
 import (
 	"errors"
 	"fmt"
+	"github.com/kwstars/goads/trees"
 
 	"github.com/kwstars/goads/pkg/common"
 )
@@ -20,6 +21,8 @@ import (
 var (
 	ErrHeapEmpty = errors.New("binary heap is empty")
 )
+
+var _ trees.Tree[int] = (*BinaryHeap[int])(nil)
 
 // Option is a function that can be passed to New to customize the BinaryHeap.
 type Option[T any] func(*BinaryHeap[T])
@@ -65,6 +68,26 @@ func New[T any](comp common.Comparator[T, T], options ...Option[T]) *BinaryHeap[
 	}
 
 	return bh
+}
+
+// Empty returns true if the BinaryHeap is empty, false otherwise.
+func (h *BinaryHeap[T]) Empty() bool {
+	return len(h.data) == 0
+}
+
+// Clear removes all elements from the BinaryHeap.
+func (h *BinaryHeap[T]) Clear() {
+	h.data = h.data[:0]
+}
+
+// Size returns the number of elements in the BinaryHeap.
+func (h *BinaryHeap[T]) Size() int {
+	return len(h.data) // Return length of internal slice
+}
+
+// IsEmpty returns true if the BinaryHeap is empty.
+func (h *BinaryHeap[T]) IsEmpty() bool {
+	return len(h.data) == 0 // Check if slice is empty
 }
 
 /*
@@ -130,16 +153,6 @@ func (h *BinaryHeap[T]) Peek() (T, error) {
 		return zero, fmt.Errorf("%w", ErrHeapEmpty)
 	}
 	return h.data[0], nil // Return min/max element
-}
-
-// Size returns the number of elements in the BinaryHeap.
-func (h *BinaryHeap[T]) Size() int {
-	return len(h.data) // Return length of internal slice
-}
-
-// IsEmpty returns true if the BinaryHeap is empty.
-func (h *BinaryHeap[T]) IsEmpty() bool {
-	return len(h.data) == 0 // Check if slice is empty
 }
 
 // upHeap ensures that the heap property is maintained for a newly added element.

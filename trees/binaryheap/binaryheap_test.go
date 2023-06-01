@@ -60,6 +60,43 @@ func TestNew(t *testing.T) {
 	}
 }
 
+func TestBinaryHeap(t *testing.T) {
+	heap := New(IntMinHeap, WithInitialCapacity[int](10))
+	for i := 0; i < 10; i++ {
+		heap.Push(i)
+	}
+
+	tests := []struct {
+		name          string
+		i             int
+		expectedLeft  int
+		expectedRight int
+		expectedHasL  bool
+		expectedHasR  bool
+	}{
+		{name: "Node at index 0", i: 0, expectedLeft: 1, expectedRight: 2, expectedHasL: true, expectedHasR: true},
+		{name: "Node at index 4", i: 4, expectedLeft: 9, expectedRight: 10, expectedHasL: true, expectedHasR: false},
+		{name: "Node at index 5", i: 5, expectedLeft: 11, expectedRight: 12, expectedHasL: false, expectedHasR: false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if left := heap.leftChild(tt.i); left != tt.expectedLeft {
+				t.Errorf("Expected left child index: %d, got: %d", tt.expectedLeft, left)
+			}
+			if right := heap.rightChild(tt.i); right != tt.expectedRight {
+				t.Errorf("Expected right child index: %d, got: %d", tt.expectedRight, right)
+			}
+			if hasL := heap.hasLeftChild(tt.i); hasL != tt.expectedHasL {
+				t.Errorf("Expected has left child: %v, got: %v", tt.expectedHasL, hasL)
+			}
+			if hasR := heap.hasRightChild(tt.i); hasR != tt.expectedHasR {
+				t.Errorf("Expected has right child: %v, got: %v", tt.expectedHasR, hasR)
+			}
+		})
+	}
+}
+
 func TestBinaryHeap_Push(t *testing.T) {
 	testCases := []struct {
 		name     string
@@ -231,43 +268,6 @@ func TestBinaryHeap_Pop(t *testing.T) {
 	}
 }
 
-func TestBinaryHeap(t *testing.T) {
-	heap := New(IntMinHeap, WithInitialCapacity[int](10))
-	for i := 0; i < 10; i++ {
-		heap.Push(i)
-	}
-
-	tests := []struct {
-		name          string
-		i             int
-		expectedLeft  int
-		expectedRight int
-		expectedHasL  bool
-		expectedHasR  bool
-	}{
-		{name: "Node at index 0", i: 0, expectedLeft: 1, expectedRight: 2, expectedHasL: true, expectedHasR: true},
-		{name: "Node at index 4", i: 4, expectedLeft: 9, expectedRight: 10, expectedHasL: true, expectedHasR: false},
-		{name: "Node at index 5", i: 5, expectedLeft: 11, expectedRight: 12, expectedHasL: false, expectedHasR: false},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if left := heap.leftChild(tt.i); left != tt.expectedLeft {
-				t.Errorf("Expected left child index: %d, got: %d", tt.expectedLeft, left)
-			}
-			if right := heap.rightChild(tt.i); right != tt.expectedRight {
-				t.Errorf("Expected right child index: %d, got: %d", tt.expectedRight, right)
-			}
-			if hasL := heap.hasLeftChild(tt.i); hasL != tt.expectedHasL {
-				t.Errorf("Expected has left child: %v, got: %v", tt.expectedHasL, hasL)
-			}
-			if hasR := heap.hasRightChild(tt.i); hasR != tt.expectedHasR {
-				t.Errorf("Expected has right child: %v, got: %v", tt.expectedHasR, hasR)
-			}
-		})
-	}
-}
-
 func TestBinaryHeap_Peek(t *testing.T) {
 	testCases := []struct {
 		name     string
@@ -348,6 +348,54 @@ func TestBinaryHeap_IsEmpty(t *testing.T) {
 
 			if isEmpty := heap.IsEmpty(); isEmpty != tc.expected {
 				t.Errorf("Expected IsEmpty to return %t, got %t", tc.expected, isEmpty)
+			}
+		})
+	}
+}
+
+func TestBinaryHeap_Empty(t *testing.T) {
+	testCases := []struct {
+		name     string
+		input    []int
+		expected bool
+	}{
+		{name: "empty heap", input: []int{}, expected: true},
+		{name: "heap with one element", input: []int{1}, expected: false},
+		{name: "heap with multiple elements", input: []int{1, 2, 3, 4, 5}, expected: false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			heap := New(IntMinHeap, WithInitialCapacity[int](len(tc.input)))
+			for _, val := range tc.input {
+				heap.Push(val)
+			}
+			if heap.Empty() != tc.expected {
+				t.Errorf("Expected %v, got %v", tc.expected, heap.Empty())
+			}
+		})
+	}
+}
+
+func TestBinaryHeap_Clear(t *testing.T) {
+	testCases := []struct {
+		name  string
+		input []int
+	}{
+		{name: "clear an empty heap", input: []int{}},
+		{name: "clear a heap with one element", input: []int{1}},
+		{name: "clear a heap with multiple elements", input: []int{1, 2, 3, 4, 5}},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			heap := New(IntMinHeap, WithInitialCapacity[int](len(tc.input)))
+			for _, val := range tc.input {
+				heap.Push(val)
+			}
+			heap.Clear()
+			if !heap.IsEmpty() {
+				t.Errorf("Expected heap to be empty after clear")
 			}
 		})
 	}
