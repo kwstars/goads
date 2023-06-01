@@ -70,66 +70,66 @@ func TestBinaryHeap_Push(t *testing.T) {
 	}{
 		// MinHeap
 		{name: "push to an empty minheap", cmp: IntMinHeap, input: []int{}, pushVal: 1, expected: []int{1}},
-		/* push to a non-empty minheap
-				 1		        1                1
-				/ \		   	   / \              / \
-			  3	   5	-->   3   5    -->     2   5
-		                     /                /
-						    2                3
+		/*push to a non-empty minheap
+		     1            1                1
+		    / \          / \             / \
+		  3    5  -->   3   5    -->    2   5
+		               /               /
+		              2               3
 		*/
 		{name: "push to a non-empty minheap", cmp: IntMinHeap, input: []int{1, 3, 5}, pushVal: 2, expected: []int{1, 2, 5, 3}},
-		/* push a larger value to a non-empty minheap
-				 1		        1
-				/ \		   	   / \
-			  3	   5	-->   3   5
-		                     /
-						    6
+		/*push a larger value to a non-empty minheap
+		    1             1
+		   / \           / \
+		  3   5   -->   3   5
+		               /
+		             6
 		*/
 		{name: "push a larger value to a non-empty minheap", cmp: IntMinHeap, input: []int{1, 3, 5}, pushVal: 6, expected: []int{1, 3, 5, 6}},
 		{name: "push a large amount of numbers", cmp: IntMinHeap, input: []int{1, 2, 3, 4, 5, 6, 7, 8, 9}, pushVal: 10, expected: []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}},
-		/* push a negative number
-					 1		        1             -1
-					/ \		   	   / \           / \
-				  2	   3	-->   2   3  -->    1   3
-			                     /             /
-		                       -1             2
+		/*push a negative number
+		    1            1            -1
+		   / \          / \           / \
+		  2   3  -->   2   3   -->   1   3
+		               /             /
+		              -1            2
 		*/
 		{name: "push a negative number", cmp: IntMinHeap, input: []int{1, 2, 3}, pushVal: -1, expected: []int{-1, 1, 3, 2}},
 		{name: "pushing IntMin", cmp: IntMinHeap, input: []int{1, 2, 3}, pushVal: math.MinInt32, expected: []int{math.MinInt32, 1, 3, 2}},
-		/* push a repeated number
-					 1		        1              1
-					/ \		   	   / \           / \
-				  2	   3	-->   2   3  -->    1   3
-			                     /             /
-		                       1              2
+		/*push a repeated number
+		    1           1             1
+		   / \         / \           / \
+		  2   3  -->  2   3   -->   1   3
+		             /             /
+		            1             2
 		*/
 		{name: "push a repeated number", cmp: IntMinHeap, input: []int{1, 2, 3}, pushVal: 1, expected: []int{1, 1, 3, 2}},
 
 		// MaxHeap
 		{name: "push to an empty maxheap", cmp: IntMaxHeap, input: []int{}, pushVal: 1, expected: []int{1}},
-		/* push to a non-empty maxheap
-				 5		        5                5
-				/ \		   	   / \              / \
-			  1	   3	-->   1   3    -->     2   3
-		                     /                /
-						    2                1
+		/*push to a non-empty maxheap
+		     5              5               5
+		    / \            / \             / \
+		  1     3   -->   1   3    -->    2   3
+		                 /               /
+		                2               1
 		*/
 		{name: "push to a non-empty maxheap", cmp: IntMaxHeap, input: []int{1, 3, 5}, pushVal: 2, expected: []int{5, 2, 3, 1}},
-		/* push a larger value to a non-empty maxheap
-				 5		        5                6
-				/ \		   	   / \              / \
-			  1	   3	-->   1   3    -->     5   3
-		                     /                /
-						    6                1
+		/*push a larger value to a non-empty maxheap
+		     5             5               6
+		    / \           / \             / \
+		  1    3   -->   1   3    -->    5   3
+		                /               /
+		               6               1
 		*/
 		{name: "push a larger value to a non-empty maxheap", cmp: IntMaxHeap, input: []int{1, 3, 5}, pushVal: 6, expected: []int{6, 5, 3, 1}},
 		{name: "push a large amount of numbers", cmp: IntMaxHeap, input: []int{1, 2, 3, 4, 5, 6, 7, 8, 9}, pushVal: 10, expected: []int{10, 9, 6, 7, 8, 2, 5, 1, 4, 3}},
-		/* pushing IntMax
-					 3		        3            MaxInt
-					/ \		   	   / \           / \
-				  1	   2	-->   1   2  -->    3   2
-			                     /             /
-		                     MaxInt           1
+		/*pushing IntMax
+		   3             3           MaxInt
+		  / \            / \          / \
+		1     2   -->   1   2 -->    3   2
+		               /            /
+		           MaxInt          1
 		*/
 		{name: "pushing IntMax", cmp: IntMaxHeap, input: []int{1, 2, 3}, pushVal: math.MaxInt32, expected: []int{math.MaxInt32, 3, 2, 1}},
 	}
@@ -167,16 +167,16 @@ func TestBinaryHeap_Pop(t *testing.T) {
 	}{
 		// MinHeap
 		{name: "pop from an empty minheap", cmp: IntMinHeap, input: []int{}, expectedErr: ErrHeapEmpty, expected: []int{}},
-		/* pop from a non-empty minheap
-			 1		                 5          3
-			/ \		   	/ \         /          /
-		  3    5  -->  3   5  -->  3     -->  5
+		/*pop from a non-empty minheap
+		     1                      5         3
+		    / \         / \        /         /
+		  3    5 -->   3   5 -->  3    -->  5
 		*/
 		{name: "pop from a non-empty minheap", cmp: IntMinHeap, input: []int{1, 3, 5}, expectedVal: 1, expected: []int{3, 5}},
-		/* pop from a heap with negative numbers
-			 -3		                     -2
-			/  \		  /  \          /
-		  -1   -2  -->  -1   -2  -->  -1
+		/*pop from a heap with negative numbers
+		     -3                           -2
+		    /  \           /  \           /
+		  -1   -2 -->    -1   -2   -->  -1
 		*/
 		{name: "pop from a heap with negative numbers", cmp: IntMinHeap, input: []int{-1, -2, -3}, expectedVal: -3, expected: []int{-2, -1}},
 		{name: "pop from a heap with repeated elements", cmp: IntMinHeap, input: []int{1, 1, 1}, expectedVal: 1, expected: []int{1, 1}},
@@ -184,18 +184,18 @@ func TestBinaryHeap_Pop(t *testing.T) {
 
 		// MaxHeap
 		{name: "pop from an empty maxheap", cmp: IntMaxHeap, input: []int{}, expectedErr: ErrHeapEmpty, expected: []int{}},
-		/* pop from a non-empty maxheap
-			 5		       3
-			/ \		     /
-		  1    3  -->  1
+		/*pop from a non-empty maxheap
+		    5           3
+		   / \         /
+		  1   3  -->  1
 		*/
 		{name: "pop from a non-empty maxheap", cmp: IntMaxHeap, input: []int{1, 3, 5}, expectedVal: 5, expected: []int{3, 1}},
-		/* pop from a larger maxheap
-			 5		                     2          4
-			/ \		   	   / \         /  \        / \
-		   4   3	-->   4   3  -->  4    3  --> 2   3
-		  /              /
-		 2              2
+		/*pop from a larger maxheap
+		      5                            2            4
+		     / \            / \           /  \         / \
+		    4   3   -->    4   3   -->   4   3   -->  2   3
+		   /              /
+		  2              2
 		*/
 		{name: "pop from a larger maxheap", cmp: IntMaxHeap, input: []int{5, 4, 3, 2}, expectedVal: 5, expected: []int{4, 2, 3}},
 		{name: "Pop from max heap where right child is larger", cmp: IntMaxHeap, input: []int{7, 6, 5, 4, 3, 2, 1}, expectedVal: 7, expected: []int{6, 4, 5, 1, 3, 2}},
